@@ -1,0 +1,37 @@
+name: Integration Test
+
+on:
+  push:
+    branches:
+      - develop
+  pull_request:
+    branches:
+      - develop
+
+jobs:
+  integration-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout 🛎️
+        uses: actions/checkout@v2
+        with:
+          persist-credentials: false
+      - name: Install 🔧
+        run: npm install
+      - name: Compile 🏗️
+        run: npm run compile
+      - name: Create .env 💻
+        run: |
+          cp env.sample .env
+          sed -i "s/<API_KEY>/$ALCHEMY_APIKEY/g" .env
+        env:
+          ALCHEMY_APIKEY: ${{ secrets.ALCHEMY_APIKEY }}
+      - name: Test 🚨
+        run: npm run -s test:integration:report
+      - name: Test Report 📝
+        uses: dorny/test-reporter@v1
+        if: success() || failure()
+        with:
+          name: Integration Test Result
+          path: test-report.json
+          reporter: mocha-json

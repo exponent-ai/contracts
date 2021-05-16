@@ -1,0 +1,66 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - '*'
+  pull_request:
+    branches:
+      - develop
+
+jobs:
+  unitest:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout 🛎️
+        uses: actions/checkout@v2
+        with:
+          persist-credentials: false
+      - name: Install 🔧
+        run: npm install
+      - name: Compile 🏗️
+        run: npm run compile
+      - name: Test 🚨
+        run: npm run -s test:report
+      - name: Test Report 📝
+        uses: dorny/test-reporter@v1
+        if: success() || failure()
+        with:
+          name: Unit Test Result
+          path: test-report.json
+          reporter: mocha-json
+  check-gas:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout 🛎️
+        uses: actions/checkout@v2
+        with:
+          persist-credentials: false
+      - name: Install 🔧
+        run: npm install
+      - name: Compile 🏗️
+        run: npm run compile
+      - name: Test 🚨
+        run: npm run test:gas
+  eslint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout 🛎️
+        uses: actions/checkout@v2
+        with:
+          persist-credentials: false
+      - name: Install 🔧
+        run: npm install
+      - name: Lint 🧐
+        run: npm run eslint
+  sollint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout 🛎️
+        uses: actions/checkout@v2
+        with:
+          persist-credentials: false
+      - name: Install 🔧
+        run: npm install
+      - name: Lint 🧐
+        run: npm run sollint
