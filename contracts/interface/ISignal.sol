@@ -1,9 +1,11 @@
 pragma solidity ^0.8.0;
 
 interface ISignal {
-    function registerSignal(string memory, string memory, string[] memory)
-        external
-        returns (string memory);
+    function registerSignal(
+        string memory,
+        string memory,
+        string[] memory
+    ) external returns (string memory);
 
     function withdrawSignal(string memory) external;
 
@@ -18,7 +20,10 @@ interface ISignal {
 
     function getSignal(string memory) external view returns (int256[] memory);
 
-    function getSignalMeta(string memory) external view returns (string[] memory);
+    function getSignalMeta(string memory)
+        external
+        view
+        returns (string[] memory);
 
     function getMetaData() external view returns (string memory);
 }
