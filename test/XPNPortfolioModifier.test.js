@@ -35,7 +35,7 @@ describe("XPNPortfolioModifier", function () {
     it("should revert if value loss more than expected", async function () {
       const portValue = padZeros("1000", 18); // 1000
       const diffPercent = padZeros("5", 16); // 5%
-      const newPortValue = padZeros("950", 18); //950.9
+      const newPortValue = padZeros("950", 18); //950
       const newDiffPercent = padZeros("1", 16); // 1%
       await this.portfolio.setPortfolioValue(portValue);
       await this.portfolio.setSignalPortfolioDiffPercent(diffPercent);
