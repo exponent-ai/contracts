@@ -16,8 +16,8 @@ describe("XPNPortfolioModifier", function () {
       const diffPercent = padZeros("5", 16); // 5%
       const newPortValue = padZeros("9999", 17); //999.9
       const newDiffPercent = padZeros("1", 16); // 1%
-      await this.portfolio.setPortfolioValue(portValue);
-      await this.portfolio.setSignalPortfolioDiffPercent(diffPercent);
+      await this.portfolio.set_portfolioValue(portValue);
+      await this.portfolio._set_signalPortfolioDiffPercent(diffPercent);
       await this.portfolio.settleTrade(newPortValue, newDiffPercent);
     });
     it("should revert if distance improved less than zero", async function () {
@@ -25,8 +25,8 @@ describe("XPNPortfolioModifier", function () {
       const diffPercent = padZeros("5", 16); // 5%
       const newPortValue = padZeros("9999", 17); //999.9
       const newDiffPercent = padZeros("6", 16); // 6%
-      await this.portfolio.setPortfolioValue(portValue);
-      await this.portfolio.setSignalPortfolioDiffPercent(diffPercent);
+      await this.portfolio.set_portfolioValue(portValue);
+      await this.portfolio._set_signalPortfolioDiffPercent(diffPercent);
       await expect(
         this.portfolio.settleTrade(newPortValue, newDiffPercent)
       ).to.be.revertedWith("trade requirement not satisfy");
@@ -37,8 +37,8 @@ describe("XPNPortfolioModifier", function () {
       const diffPercent = padZeros("5", 16); // 5%
       const newPortValue = padZeros("950", 18); //950
       const newDiffPercent = padZeros("1", 16); // 1%
-      await this.portfolio.setPortfolioValue(portValue);
-      await this.portfolio.setSignalPortfolioDiffPercent(diffPercent);
+      await this.portfolio.set_portfolioValue(portValue);
+      await this.portfolio._set_signalPortfolioDiffPercent(diffPercent);
       await expect(
         this.portfolio.settleTrade(newPortValue, newDiffPercent)
       ).to.be.revertedWith("trade requirement not satisfy");
@@ -49,8 +49,8 @@ describe("XPNPortfolioModifier", function () {
       const diffPercent = padZeros("5", 16); // 5%
       const newPortValue = padZeros("950", 18); //950.9
       const newDiffPercent = padZeros("6", 16); // 6%
-      await this.portfolio.setPortfolioValue(portValue);
-      await this.portfolio.setSignalPortfolioDiffPercent(diffPercent);
+      await this.portfolio.set_portfolioValue(portValue);
+      await this.portfolio._set_signalPortfolioDiffPercent(diffPercent);
       await expect(
         this.portfolio.settleTrade(newPortValue, newDiffPercent)
       ).to.be.revertedWith("trade requirement not satisfy");

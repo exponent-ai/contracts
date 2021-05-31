@@ -11,24 +11,24 @@ contract XPNPortfolioModifierSpy is XPNPortfolio {
         public
         ensureTrade
     {
-        setPortfolioValue(_portValue);
-        setSignalPortfolioDiffPercent(_diffPercent);
+        set_portfolioValue(_portValue);
+        _set_signalPortfolioDiffPercent(_diffPercent);
     }
 
-    function setPortfolioValue(int256 _value) public {
+    function set_portfolioValue(int256 _value) public {
         value = _value;
     }
 
-    function setSignalPortfolioDiffPercent(int256 _distance) public {
+    function _set_signalPortfolioDiffPercent(int256 _distance) public {
         distance = _distance;
     }
 
-    function portfolioValue() public view override returns (int256) {
+    function _portfolioValue() internal view override returns (int256) {
         return value;
     }
 
-    function signalPortfolioDiffPercent()
-        public
+    function _signalPortfolioDiffPercent()
+        internal
         view
         override
         returns (int256)

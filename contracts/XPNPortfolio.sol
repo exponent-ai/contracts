@@ -11,37 +11,32 @@ contract XPNPortfolio {
     int256 public constant ONE = 1e18;
 
     mapping(uint256 => uint256) private performance;
-    address private vaultAddress;
     address[] assetAddress;
     mapping(string => AggregatorV3Interface) symbolPricefeed;
     int256 expectedEfficientcy = 98e16;
 
     ISignal private signalPool;
-    string signalName;
-
-    constructor() {}
+    string private signalName;
 
     // @notice set target signal
-    // @param _signalPoolAddress address of signal contract
-    // @param _signalName name of the target signal in the signal contract
+    // @param signalPoolAddress address of signal contract
+    // @param signalName name of the target signal in the signal contract
     // @dev this function assume that caller already verify the compatability off chain.
-    function setSignal(address _signalPoolAddress, string memory _signalName)
+    function _setSignal(address signalPoolAddress, string memory _signalName)
         internal
     {
-        signalPool = ISignal(_signalPoolAddress);
+        signalPool = ISignal(signalPoolAddress);
 
-        // "This asset vault is consistence with the signal asset"
+        // "This asset vault is consistent with the signal asset"
         require(true);
 
         signalName = _signalName;
     }
 
-    function setVaultAddress(address _vaultAddress) external {
-        vaultAddress = _vaultAddress;
-    }
+    function _getVaultAddress() internal view virtual returns (address) {}
 
-    function viewPortfolioToken()
-        public
+    function _viewPortfolioToken()
+        internal
         view
         virtual
         returns (int256[] memory)
@@ -52,34 +47,40 @@ contract XPNPortfolio {
         */
         int256[] memory tokens = new int256[](assetAddress.length);
         for (uint256 i = 0; i < assetAddress.length; i++) {
-            tokens[i] = int256(IERC20(assetAddress[i]).balanceOf(vaultAddress));
+            tokens[i] = int256(
+                IERC20(assetAddress[i]).balanceOf(_getVaultAddress())
+            );
         }
         return tokens;
     }
 
-    function getTokensPrice() public view virtual returns (int256[] memory) {
+    function _getTokensPrice() internal view virtual returns (int256[] memory) {
         /*
             token prices
         */
     }
 
-    function viewPortfolioMixValue() public view returns (int256[] memory) {
+    function _viewPortfolioMixValue() internal view returns (int256[] memory) {
         /*
             return value of each asset. (in usd) 
             TODO: refactor 
             */
-        return viewPortfolioToken().elementWiseMul(getTokensPrice());
+        return _viewPortfolioToken().elementWiseMul(_getTokensPrice());
     }
 
-    function viewPortfolioAllocation() public view returns (int256[] memory) {
+    function _viewPortfolioAllocation()
+        internal
+        view
+        returns (int256[] memory)
+    {
         /*
             return allocation of each asset. (in % of portfolio) - sum = 1e18
             */
-        return viewPortfolioMixValue().normalize();
+        return _viewPortfolioMixValue().normalize();
     }
 
-    function signalPortfolioDiffAllocation()
-        public
+    function _signalPortfolioDiffAllocation()
+        internal
         view
         returns (int256[] memory)
     {
@@ -88,54 +89,62 @@ contract XPNPortfolio {
         */
         return
             signalPool.getSignal(signalName).normalize().elementWiseSub(
-                viewPortfolioAllocation()
+                _viewPortfolioAllocation()
             );
     }
 
-    function signalPortfolioDiffValue() public view returns (int256[] memory) {
+    function _signalPortfolioDiffValue()
+        internal
+        view
+        returns (int256[] memory)
+    {
         /*
             get different in value allocation between master signal and current portfolio allocation
             TODO: refactor
         */
-        return signalPortfolioDiffAllocation().vectorScale(portfolioValue());
+        return _signalPortfolioDiffAllocation().vectorScale(_portfolioValue());
     }
 
-    function signalPortfolioDiffToken() public view returns (int256[] memory) {
+    function _signalPortfolioDiffToken()
+        internal
+        view
+        returns (int256[] memory)
+    {
         /*
             get different in token allocation between master signal and current portfolio allocation
             TODO: implement this
         */
-        return signalPortfolioDiffValue().elementWiseDiv(getTokensPrice());
+        return _signalPortfolioDiffValue().elementWiseDiv(_getTokensPrice());
     }
 
-    function portfolioValue() public view virtual returns (int256 value) {
+    function _portfolioValue() internal view virtual returns (int256 value) {
         /*
             porfolio value in usd
         */
-        value = viewPortfolioMixValue().sum();
+        value = _viewPortfolioMixValue().sum();
     }
 
-    function signalPortfolioDiffPercent()
-        public
+    function _signalPortfolioDiffPercent()
+        internal
         view
         virtual
         returns (int256 distance)
     {
         /*
-        distance between target vs current portfolio_allocation (how much value needed to be move) (in %)
+        distance between target vs current portfolioallocation (how much value needed to be move) (in %)
         calculate as sum(token-wise diff)/ 2
         */
-        distance = signalPortfolioDiffAllocation().l1Norm() / 2;
+        distance = _signalPortfolioDiffAllocation().l1Norm() / 2;
     }
 
     modifier ensureTrade() {
         // TODO
-        int256 preTradeValue = portfolioValue();
-        int256 preTradeDistance = signalPortfolioDiffPercent();
+        int256 preTradeValue = _portfolioValue();
+        int256 preTradeDistance = _signalPortfolioDiffPercent();
         _;
         int256 distanceImproved =
-            preTradeDistance - signalPortfolioDiffPercent();
-        int256 valueLoss = preTradeValue - portfolioValue();
+            preTradeDistance - _signalPortfolioDiffPercent();
+        int256 valueLoss = preTradeValue - _portfolioValue();
         int256 expectedLoss =
             (((preTradeValue * distanceImproved) / ONE) *
                 (ONE - expectedEfficientcy)) / ONE;

@@ -52,7 +52,7 @@ describe("XPNPortfolio", function () {
       ).to.deep.equal([String(2e17), String(3e17), String(5e17)]);
     });
 
-    it("portfolioValue", async function () {
+    it("PortfolioValue", async function () {
       await this.signalFund.setToken(["25", "50", "50"]);
       await this.signalFund.setTokensPrice([
         String(4e18),
@@ -88,7 +88,7 @@ describe("XPNPortfolio", function () {
         )
       ).to.deep.equal([String(5e17), String(5e17), String(-1e18)]);
     });
-    it("signalPortfolioDiffValue", async function () {
+    it("SignalPortfolioDiffValue", async function () {
       await this.signalFund.setToken(["0", "0", "1000"]);
       await this.signalFund.setTokensPrice([
         String(4e18),
@@ -106,7 +106,7 @@ describe("XPNPortfolio", function () {
       ).to.deep.equal([String(500), String(500), String(-1000)]);
     });
 
-    it("signalPortfolioDiffToken", async function () {
+    it("SignalPortfolioDiffToken", async function () {
       await this.signalFund.setToken(["0", "0", "1000"]);
       await this.signalFund.setTokensPrice([
         String(4e18),
@@ -124,7 +124,7 @@ describe("XPNPortfolio", function () {
       ).to.deep.equal([String(125), String(100), String(-1000)]);
     });
 
-    it("signalPortfolioDiffPercent", async function () {
+    it("SignalPortfolioDiffPercent", async function () {
       await this.signalFund.setToken(["0", "0", "1000"]);
       await this.signalFund.setTokensPrice([
         String(4e18),

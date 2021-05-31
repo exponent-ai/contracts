@@ -15,10 +15,6 @@ contract XPNSignal is ISignal {
 
     address[] assetAddress;
 
-    constructor() {
-        // empty constructure for now
-    }
-
     function registerSignal(
         string memory signalName,
         string memory _signalType,
@@ -36,7 +32,7 @@ contract XPNSignal is ISignal {
     }
 
     function withdrawSignal(string memory signalName) external override {
-        require(ownSignals[msg.sender][signalName], "not your signal la");
+        require(ownSignals[msg.sender][signalName], "not your signal");
         signalsMetaData[signalName].signalActive = false;
     }
 
@@ -46,7 +42,7 @@ contract XPNSignal is ISignal {
         int256[] memory weights,
         bytes calldata data
     ) external override {
-        require(ownSignals[msg.sender][signalName], "not your signal la");
+        require(ownSignals[msg.sender][signalName], "not your signal");
         signalsWeight[signalName] = weights;
         signalsReference[signalName] = ref;
         signalsMetaData[signalName].signalActive = true;
