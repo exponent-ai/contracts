@@ -124,7 +124,7 @@ contract XPNSignalCore {
         return masterSignal.normalize();
     }
 
-    function viewPortfolioToken()
+    function _viewPortfolioToken()
         public
         view
         virtual
@@ -137,7 +137,7 @@ contract XPNSignalCore {
         revert("not implemented");
     }
 
-    function getTokensPrice() public view virtual returns (int256[] memory) {
+    function _getTokensPrice() public view virtual returns (int256[] memory) {
         /*
             token prices
         */
@@ -148,19 +148,19 @@ contract XPNSignalCore {
         return prices;
     }
 
-    function viewPortfolioMixValue() public view returns (int256[] memory) {
+    function _viewPortfolioMixValue() public view returns (int256[] memory) {
         /*
         return value of each asset. (in usd) 
         TODO: refactor 
         */
-        return viewPortfolioToken().elementWiseMul(getTokensPrice());
+        return _viewPortfolioToken().elementWiseMul(_getTokensPrice());
     }
 
-    function viewPortfolioAllocation() public view returns (int256[] memory) {
+    function _viewPortfolioAllocation() public view returns (int256[] memory) {
         /*
         return allocation of each asset. (in % of portfolio) - sum = 1e18
         */
-        return viewPortfolioMixValue().normalize();
+        return _viewPortfolioMixValue().normalize();
     }
 
     function signalPortfolioDiffAllovcation()
@@ -172,33 +172,33 @@ contract XPNSignalCore {
             get different in % allocation between master signal and current portfolio allocation
         */
         return
-            masterSignal.normalize().elementWiseSub(viewPortfolioAllocation());
+            masterSignal.normalize().elementWiseSub(_viewPortfolioAllocation());
     }
 
-    function signalPortfolioDiffValue() public view returns (int256[] memory) {
+    function _signalPortfolioDiffValue() public view returns (int256[] memory) {
         /*
             get different in value allocation between master signal and current portfolio allocation
             TODO: refactor
         */
-        return signalPortfolioDiffAllovcation().vectorScale(portfolioValue());
+        return signalPortfolioDiffAllovcation().vectorScale(_portfolioValue());
     }
 
-    function signalPortfolioDiffToken() public view returns (int256[] memory) {
+    function _signalPortfolioDiffToken() public view returns (int256[] memory) {
         /*
             get different in token allocation between master signal and current portfolio allocation
             TODO: implement this
         */
-        return signalPortfolioDiffValue().elementWiseDiv(getTokensPrice());
+        return _signalPortfolioDiffValue().elementWiseDiv(_getTokensPrice());
     }
 
-    function portfolioValue() public view returns (int256 value) {
+    function _portfolioValue() public view returns (int256 value) {
         /*
             porfolio value in usd
         */
-        value = viewPortfolioMixValue().sum();
+        value = _viewPortfolioMixValue().sum();
     }
 
-    function signalPortfolioDiffPercent()
+    function _signalPortfolioDiffPercent()
         public
         view
         returns (int256 distance)
