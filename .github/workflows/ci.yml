@@ -22,6 +22,8 @@ jobs:
         run: npm run compile
       - name: Test 🚨
         run: npm run -s test:report
+      - name: Test Coverage 📈 
+        run: npm run -s test:coverage
       - name: Test Report 📝
         uses: dorny/test-reporter@v1
         if: success() || failure()
