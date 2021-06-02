@@ -36,13 +36,16 @@ module.exports = {
       },
     ],
   },
-  networks: ALCHEMY_APIKEY && KOVAN_PRIVATE_KEY ? {
-    kovan: {
-      url: `https://eth-kovan.alchemyapi.io/v2/${ALCHEMY_APIKEY}`,
-      accounts: [`0x${KOVAN_PRIVATE_KEY}`],
-      gas: "auto",
-    },
-  } : {},
+  networks:
+    ALCHEMY_APIKEY && KOVAN_PRIVATE_KEY
+      ? {
+          kovan: {
+            url: `https://eth-kovan.alchemyapi.io/v2/${ALCHEMY_APIKEY}`,
+            accounts: [`0x${KOVAN_PRIVATE_KEY}`],
+            gas: "auto",
+          },
+        }
+      : {},
   abiExporter: {
     path: "./data/abi",
     clear: true,
