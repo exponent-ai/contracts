@@ -2,7 +2,7 @@ name: Deploy
 
 on:
   tags:
-    - v1.*
+    - v0.**.**-alpha
 
 jobs:
   deploy-kovan:
