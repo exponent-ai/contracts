@@ -1,0 +1,21 @@
+name: Deploy
+
+on:
+  tags:
+    - v1.*
+
+jobs:
+  deploy-kovan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout 🛎️
+        uses: actions/checkout@v2
+        with:
+          persist-credentials: false
+      - name: Install 🔧
+        run: npm install
+      - name: Compile 🏗️
+        run: npx hardhat scripts/deploy.js --network kovan
+    env:
+      ALCHEMY_APIKEY: ${{ secrets.ALCHEMYAPIKEY }}
+      KOVAN_PRIVATE_KEY: ${{ secrets.KOVAN_PRIVATE_KEY }}
