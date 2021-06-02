@@ -3,7 +3,7 @@ name: CI
 on:
   push:
     branches:
-      - '*'
+      - "*"
   pull_request:
     branches:
       - develop
@@ -22,7 +22,7 @@ jobs:
         run: npm run compile
       - name: Test 🚨
         run: npm run -s test:report
-      - name: Test Coverage 📈 
+      - name: Test Coverage 📈
         run: npm run -s test:coverage
       - name: Test Report 📝
         uses: dorny/test-reporter@v1
