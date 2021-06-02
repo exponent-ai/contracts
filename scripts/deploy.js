@@ -1,6 +1,6 @@
 async function main() {
 
-  const [depositor, admin] = await ethers.getSigners();
+  const [depositor] = await ethers.getSigners();
 
   console.log(
     "Deploying contracts with the account:",
@@ -19,13 +19,14 @@ async function main() {
   console.log("XPNSettlement deployed to:", tradesettlement.address);
 
   // TODO: Change this for and underlying asset address
-  const MockToken = await ethers.getContractFactory("MockERC20");
-  token = await MockToken.deploy("DAI token", "DAI");
+  // const MockToken = await ethers.getContractFactory("MockERC20");
+  // token = await MockToken.deploy("DAI token", "DAI");
+  const daiAddress = "0xc4375b7de8af5a38a93548eb8453a498222c4ff2";
 
   // XPNVault
   const Vault = await ethers.getContractFactory("XPNVault");
   vault = await Vault.deploy(
-    token.address,
+    daiAddress,
     "Exponent DAI LP Token",
     "EXLP-DAI"
   );
@@ -34,6 +35,7 @@ async function main() {
   // XPNSignalCore
   const Util = await ethers.getContractFactory("XPNUtils");
   util = await Util.deploy();
+  console.log("XPNUtils deployed to:", util.address);
   const SignalFund = await ethers.getContractFactory("XPNSignalCore", {
     libraries: {
       XPNUtils: util.address,

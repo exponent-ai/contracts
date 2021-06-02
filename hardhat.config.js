@@ -4,6 +4,8 @@ require("@nomiclabs/hardhat-solhint");
 require("hardhat-abi-exporter");
 require("solidity-coverage");
 
+const {ALCHEMY_API_KEY, ROPSTEN_PRIVATE_KEY, KOVAN_PRIVATE_KEY} = process.env
+
 // This is a sample Hardhat task. To learn how to create your own go to
 // https://hardhat.org/guides/create-task.html
 task("accounts", "Prints the list of accounts", async () => {
@@ -41,9 +43,10 @@ module.exports = {
     },
     kovan: {
       url: `https://eth-kovan.alchemyapi.io/v2/${ALCHEMY_API_KEY}`,
-      accounts: [`0x${KOVAN_PRIVATE_KEY}`]
+      accounts: [`0x${KOVAN_PRIVATE_KEY}`],
+      gas: "auto"
     },
-  }
+  },
   abiExporter: {
     path: "./data/abi",
     clear: true,
