@@ -8,4 +8,4 @@ artifacts
 # Test report
 test-report.json
 /coverage 
-coverage.js
+coverage.json
