@@ -7,3 +7,5 @@ artifacts
 
 # Test report
 test-report.json
+/coverage 
+coverage.json
