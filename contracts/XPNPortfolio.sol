@@ -11,7 +11,6 @@ contract XPNPortfolio {
     int256 public constant ONE = 1e18;
 
     mapping(uint256 => uint256) private performance;
-    address[] assetAddress;
     mapping(string => AggregatorV3Interface) symbolPricefeed;
     int256 expectedEfficientcy = 98e16;
 
@@ -26,14 +25,39 @@ contract XPNPortfolio {
         internal
     {
         signalPool = ISignal(signalPoolAddress);
-
-        // "This asset vault is consistent with the signal asset"
-        require(true);
-
         signalName = _signalName;
     }
 
+    function _getSignalName() internal view returns (string memory) {
+        return signalName;
+    }
+
+    function _getSignalPool() internal view returns (address) {
+        return address(signalPool);
+    }
+
     function _getVaultAddress() internal view virtual returns (address) {}
+
+    function _getSymbolToToken(string memory _symbol)
+        internal
+        view
+        virtual
+        returns (address)
+    {}
+
+    function _getTokenPrice(address _asset)
+        internal
+        view
+        virtual
+        returns (int256)
+    {}
+
+    function _getDenomAssetSymbol()
+        internal
+        view
+        virtual
+        returns (string memory)
+    {}
 
     function _viewPortfolioToken()
         internal
@@ -45,19 +69,33 @@ contract XPNPortfolio {
         return amount of each asset. (in token)
         TODO: refactor 
         */
-        int256[] memory tokens = new int256[](assetAddress.length);
-        for (uint256 i = 0; i < assetAddress.length; i++) {
+        // resolves symbols to addresses
+        int256[] memory tokens;
+        string[] memory symbols = signalPool.getSignalMeta(signalName);
+        for (uint256 i = 0; i < symbols.length; i++) {
             tokens[i] = int256(
-                IERC20(assetAddress[i]).balanceOf(_getVaultAddress())
+                IERC20(_getSymbolToToken(symbols[i])).balanceOf(
+                    _getVaultAddress()
+                )
             );
         }
         return tokens;
     }
 
     function _getTokensPrice() internal view virtual returns (int256[] memory) {
-        /*
-            token prices
-        */
+        string[] memory symbols = signalPool.getSignalMeta(signalName);
+        int256[] memory prices;
+        // resolves symbol to asset token
+        for (uint256 i; i < symbols.length; i++) {
+            string memory symbol = symbols[i];
+            if (XPNUtils.compareStrings(symbol, _getDenomAssetSymbol())) {
+                prices[i] = int256(1);
+                continue;
+            }
+            int256 price = _getTokenPrice(_getSymbolToToken(symbol));
+            prices[i] = price;
+        }
+        return prices;
     }
 
     function _viewPortfolioMixValue() internal view returns (int256[] memory) {
@@ -138,7 +176,6 @@ contract XPNPortfolio {
     }
 
     modifier ensureTrade() {
-        // TODO
         int256 preTradeValue = _portfolioValue();
         int256 preTradeDistance = _signalPortfolioDiffPercent();
         _;

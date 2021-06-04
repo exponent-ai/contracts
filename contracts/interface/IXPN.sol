@@ -8,8 +8,6 @@ interface IXPN {
         external
         returns (address[] memory, uint256[] memory);
 
-    function submitSignal(string[] memory, int256[] memory) external;
-
     function submitTradeOrders(
         bytes[] calldata _trades,
         address[] memory _venues
@@ -21,11 +19,11 @@ interface IXPN {
 
     function getTrackedAssets() external view returns (address[] memory);
 
-    function getStrategist() external view returns (address);
+    function getStrategistAddress() external view returns (address);
 
-    function getAdmin() external view returns (address);
+    function getAdminAddress() external view returns (address);
 
-    function getLPToken() external view returns (address);
+    function getLPTokenAddress() external view returns (address);
 
     function getDenominationAsset() external view returns (address);
 }

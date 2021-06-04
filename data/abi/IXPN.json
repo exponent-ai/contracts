@@ -68,7 +68,7 @@
   },
   {
     "inputs": [],
-    "name": "getAdmin",
+    "name": "getAdminAddress",
     "outputs": [
       {
         "internalType": "address",
@@ -94,7 +94,7 @@
   },
   {
     "inputs": [],
-    "name": "getLPToken",
+    "name": "getLPTokenAddress",
     "outputs": [
       {
         "internalType": "address",
@@ -107,7 +107,7 @@
   },
   {
     "inputs": [],
-    "name": "getStrategist",
+    "name": "getStrategistAddress",
     "outputs": [
       {
         "internalType": "address",
@@ -129,24 +129,6 @@
       }
     ],
     "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "string[]",
-        "name": "",
-        "type": "string[]"
-      },
-      {
-        "internalType": "int256[]",
-        "name": "",
-        "type": "int256[]"
-      }
-    ],
-    "name": "submitSignal",
-    "outputs": [],
-    "stateMutability": "nonpayable",
     "type": "function"
   },
   {

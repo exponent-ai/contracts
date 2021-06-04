@@ -36,13 +36,22 @@ describe("XPNSettlement", function () {
         "TradeSettlement: trade submissions input length not equal"
       );
     });
+    it("should reject if venue is not whitelisted", async function () {
+      await this.tradesettlement.setIsWhitelist(false);
+      await this.tradesettlement.setReturnMsg(true);
+      await expect(
+        this.tradesettlement.submitTradeOrders(...Object.values(this.order))
+      ).to.be.revertedWith("XPNSettlement: venue is not whitelisted");
+    });
     it("should reject if submitTrade returns false", async function () {
+      await this.tradesettlement.setIsWhitelist(true);
       await this.tradesettlement.setReturnMsg(false);
       await expect(
         this.tradesettlement.submitTradeOrders(...Object.values(this.order))
-      ).to.be.revertedWith("TradeSettlement: a trade did not execute");
+      ).to.be.revertedWith("XPNSettlement: a trade did not execute");
     });
     it("should call a correct number of transactions", async function () {
+      await this.tradesettlement.setIsWhitelist(true);
       await this.tradesettlement.setReturnMsg(true);
       await this.tradesettlement.submitTradeOrders(
         ...Object.values(this.order).map((arg) =>
@@ -52,6 +61,7 @@ describe("XPNSettlement", function () {
       expect(await this.tradesettlement.count()).to.be.equal(3);
     });
     it("should emit an event on successful trade", async function () {
+      await this.tradesettlement.setIsWhitelist(true);
       await this.tradesettlement.setReturnMsg(true);
       await expect(
         this.tradesettlement.submitTradeOrders(...Object.values(this.order))

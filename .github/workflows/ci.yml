@@ -55,7 +55,7 @@ jobs:
         run: npm install
       - name: Lint 🧐
         run: npm run eslint
-  sollint:
+  solhint:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout 🛎️
@@ -64,5 +64,5 @@ jobs:
           persist-credentials: false
       - name: Install 🔧
         run: npm install
-      - name: Lint 🧐
-        run: npm run sollint
+      - name: Hint 🧐
+        run: npm run hint
