@@ -78,13 +78,13 @@ describe("SignalCore", function () {
   describe("viewPortfolio DATA", function () {
     it("PortfolioToken", async function () {
       expect(
-        bignumToStringArray(await this.signalFund.viewPortfolioToken())
+        bignumToStringArray(await this.signalFund._viewPortfolioToken())
       ).to.deep.equal(["0", "0", "0"]);
       await this.signalFund.mockDeposit(2, 50);
       await this.signalFund.mockDeposit(0, 10);
       await this.signalFund.mockDeposit(1, 30);
       expect(
-        bignumToStringArray(await this.signalFund.viewPortfolioToken())
+        bignumToStringArray(await this.signalFund._viewPortfolioToken())
       ).to.deep.equal(["10", "30", "50"]);
     });
     it("PortfolioMixValue", async function () {
@@ -97,7 +97,7 @@ describe("SignalCore", function () {
         String(5e18),
       ]);
       expect(
-        bignumToStringArray(await this.signalFund.viewPortfolioMixValue())
+        bignumToStringArray(await this.signalFund._viewPortfolioMixValue())
       ).to.deep.equal(["100", "150", "250"]);
     });
     it("PortfolioAllocation", async function () {
@@ -110,11 +110,11 @@ describe("SignalCore", function () {
         String(5e18),
       ]);
       expect(
-        bignumToStringArray(await this.signalFund.viewPortfolioAllocation())
+        bignumToStringArray(await this.signalFund._viewPortfolioAllocation())
       ).to.deep.equal([String(2e17), String(3e17), String(5e17)]);
     });
 
-    it("portfolioValue", async function () {
+    it("_portfolioValue", async function () {
       await this.signalFund.mockDeposit(0, 25);
       await this.signalFund.mockDeposit(1, 50);
       await this.signalFund.mockDeposit(2, 50);
@@ -123,7 +123,7 @@ describe("SignalCore", function () {
         String(3e18),
         String(5e18),
       ]);
-      expect(bignumToString(await this.signalFund.portfolioValue())).to.equal(
+      expect(bignumToString(await this.signalFund._portfolioValue())).to.equal(
         String(500)
       );
     });
@@ -146,7 +146,7 @@ describe("SignalCore", function () {
         bignumToStringArray(await this.signalFund.getMasterSignal())
       ).deep.equal([String(5e17), String(5e17), String(0)]);
       expect(
-        bignumToStringArray(await this.signalFund.viewPortfolioAllocation())
+        bignumToStringArray(await this.signalFund._viewPortfolioAllocation())
       ).to.deep.equal([String(0), String(0), String(1e18)]);
       expect(
         bignumToStringArray(
@@ -154,7 +154,7 @@ describe("SignalCore", function () {
         )
       ).to.deep.equal([String(5e17), String(5e17), String(-1e18)]);
     });
-    it("signalPortfolioDiffValue", async function () {
+    it("_signalPortfolioDiffValue", async function () {
       await this.signalFund.mockDeposit(0, 0);
       await this.signalFund.mockDeposit(1, 0);
       await this.signalFund.mockDeposit(2, 1000);
@@ -167,11 +167,11 @@ describe("SignalCore", function () {
         .connect(this.signal1)
         .submitSignal(["BTC", "ETH", "USDT"], [1, 1, 0]);
       expect(
-        bignumToStringArray(await this.signalFund.signalPortfolioDiffValue())
+        bignumToStringArray(await this.signalFund._signalPortfolioDiffValue())
       ).to.deep.equal([String(500), String(500), String(-1000)]);
     });
 
-    it("signalPortfolioDiffToken", async function () {
+    it("_signalPortfolioDiffToken", async function () {
       await this.signalFund.mockDeposit(0, 0);
       await this.signalFund.mockDeposit(1, 0);
       await this.signalFund.mockDeposit(2, 1000);
@@ -184,11 +184,11 @@ describe("SignalCore", function () {
         .connect(this.signal1)
         .submitSignal(["BTC", "ETH", "USDT"], [1, 1, 0]);
       expect(
-        bignumToStringArray(await this.signalFund.signalPortfolioDiffToken())
+        bignumToStringArray(await this.signalFund._signalPortfolioDiffToken())
       ).to.deep.equal([String(125), String(100), String(-1000)]);
     });
 
-    it("signalPortfolioDiffPercent", async function () {
+    it("_signalPortfolioDiffPercent", async function () {
       await this.signalFund.mockDeposit(0, 0);
       await this.signalFund.mockDeposit(1, 0);
       await this.signalFund.mockDeposit(2, 1000);
@@ -201,13 +201,13 @@ describe("SignalCore", function () {
         .connect(this.signal1)
         .submitSignal(["BTC", "ETH", "USDT"], [1, 1, 0]);
       expect(
-        bignumToString(await this.signalFund.signalPortfolioDiffPercent())
+        bignumToString(await this.signalFund._signalPortfolioDiffPercent())
       ).to.equal(String(1e18));
       await this.signalFund
         .connect(this.signal1)
         .submitSignal(["BTC", "ETH", "USDT"], [0, 1, 1]);
       expect(
-        bignumToString(await this.signalFund.signalPortfolioDiffPercent())
+        bignumToString(await this.signalFund._signalPortfolioDiffPercent())
       ).to.equal(String(5e17));
     });
   });

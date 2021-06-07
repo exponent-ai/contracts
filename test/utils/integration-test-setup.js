@@ -28,15 +28,29 @@ const contracts = [
     address: process.env.ENZYME_ASSET_ADAPTER,
     abi: "ITrackedAssetAdapter",
   },
+  {
+    name: "ENZYME_POLICY_MANAGER",
+    address: process.env.ENZYME_POLICY_MANAGER,
+    abi: "IPolicyManager",
+  },
+  {
+    name: "ENZYME_INVESTOR_WHITELIST",
+    address: process.env.ENZYME_INVESTOR_WHITELIST,
+  },
 ];
 
 async function initMainnetEnv() {
   const loadedContracts = contracts.map(async function (contract) {
-    const target = await hre.ethers.getContractAt(
-      contract.abi,
-      contract.address
-    );
-    return [contract.name, target];
+    if ("abi" in contract) {
+      const target = await hre.ethers.getContractAt(
+        contract.abi,
+        contract.address
+      );
+      return [contract.name, target];
+    } else {
+      // return raw addres instead
+      return [contract.name, { address: contract.address }];
+    }
   });
   const gotContracts = await Promise.all(loadedContracts);
   return Object.fromEntries(gotContracts);

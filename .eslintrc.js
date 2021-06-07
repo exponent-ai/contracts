@@ -21,7 +21,7 @@ module.exports = {
     beforeEach: true,
     task: true,
   },
-
+  ignorePatterns: ["/coverage"],
   rules: {
     "prettier/prettier": "error",
   },

@@ -43,4 +43,13 @@ library XPNUtils {
             cleanWeight[i] = 0;
         }
     }
+
+    function compareStrings(string memory first, string memory second)
+        public
+        pure
+        returns (bool)
+    {
+        return (keccak256(abi.encodePacked((first))) ==
+            keccak256(abi.encodePacked((second))));
+    }
 }

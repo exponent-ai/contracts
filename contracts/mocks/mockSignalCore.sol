@@ -20,7 +20,7 @@ contract MockSignalFund is XPNSignalCore {
         tokenPrice = [int256(56e18), int256(1600e18), int256(1e18)];
     }
 
-    function viewPortfolioToken()
+    function _viewPortfolioToken()
         public
         view
         override
@@ -44,7 +44,7 @@ contract MockSignalFund is XPNSignalCore {
             e.g. at 1:50 btc:eth at 99.5% efficiency rate (0.5% loss)
             sell 1 btc -> eth will result in -1 btc, + 49.75 eth
         */
-        fundsAsset = fundsAsset.elementWiseAdd(signalPortfolioDiffToken());
+        fundsAsset = fundsAsset.elementWiseAdd(_signalPortfolioDiffToken());
     }
 
     function mockDeposit(uint256 assetIndex, int256 amount) external {
@@ -54,7 +54,7 @@ contract MockSignalFund is XPNSignalCore {
         fundsAsset[assetIndex] += amount;
     }
 
-    function getTokensPrice() public view override returns (int256[] memory) {
+    function _getTokensPrice() public view override returns (int256[] memory) {
         /*
             token prices
         */
