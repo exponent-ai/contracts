@@ -20,10 +20,10 @@ async function main() {
   // TODO: Change signal name
   process.stdout.write("Registering Signal");
   await this.simpleSignal.registerSignal("testsignal1", "Simple", ["ETH"]);
-  console.log("DONE")
+  console.log("DONE");
   process.stdout.write("Submitting signal: ");
   await this.simpleSignal.submitSignal("testsignal1", ["ETH"], [1], "0x");
-  console.log("DONE")
+  console.log("DONE");
 
   const contracts = {
     ENZYME_DEPLOYER: {
@@ -77,10 +77,10 @@ async function main() {
   console.log("XPNCore deployed to:", this.simpleSignal.address);
   process.stdout.write("Setting up signal: ");
   await this.core.setSignal(this.simpleSignal.address, "testsignal1");
-  console.log("DONE")
+  console.log("DONE");
   process.stdout.write("Initializing XPNMain: ");
   await this.core.initializeFundConfig();
-  console.log("DONE")
+  console.log("DONE");
 }
 
 main()

@@ -1,5 +1,7 @@
-const path = require('path')
-require('dotenv').config({ path: path.resolve(process.cwd(), ".integration.env")})
+const path = require("path");
+require("dotenv").config({
+  path: path.resolve(process.cwd(), ".integration.env"),
+});
 
 async function main() {
   const [depositor] = await ethers.getSigners();
@@ -44,7 +46,7 @@ async function main() {
     constructorArgs,
     process.env.DENOM_ASSET_ADDRESS,
     process.env.TOKEN_NAME,
-    process.env.TOKEN_SYMBOL,
+    process.env.TOKEN_SYMBOL
   );
   await this.core.deployed();
   console.log("XPNCore deployed to:", this.simpleSignal.address);
