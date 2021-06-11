@@ -2,7 +2,7 @@ name: Deploy
 
 on:
   tags:
-    - v0.**.**-alpha
+    - v*
 
 jobs:
   deploy-kovan:
@@ -14,8 +14,23 @@ jobs:
           persist-credentials: false
       - name: Install 🔧
         run: npm install
+      - name: Create .env 💻
+        run: |
+          cp env.integration.sample .integration.env
+          sed -i "s/<ADMIN_ADDRESS>/$ADMIN_ADDRESS/g" .integration.env
+          sed -i "s/<SETTLER_ADDRESS>/$SETTLER_ADDRESS/g" .integration.env
+          sed -i "s/<ENZYME_DEPLOYER>/$ENZYME_DEPLOYER/g" .integration.env
+          sed -i "s/<ENZYME_INT_MANAGER>/$ENZYME_INT_MANAGER/g" .integration.env
+          sed -i "s/<ENZYME_ASSET_ADAPTER>/$ENZYME_ASSET_ADAPTER/g" .integration.env
+          sed -i "s/<ENZYME_POLICY_MANAGER>/$ENZYME_POLICY_MANAGER/g" .integration.env
+          sed -i "s/<ENZYME_INVESTOR_WHITELIST>/$ENZYME_INVESTOR_WHITELIST/g" .integration.env
+          sed -i "s/<DENOM_ASSET_ADDRESS>/$DENOM_ASSET_ADDRESS/g" .integration.env
+          sed -i "s/<DENOM_ASSET_SYMBOL>/$DENOM_ASSET_SYMBOL/g" .integration.env
+          sed -i "s/<VAULT_NAME>/$VAULT_NAME/g" .integration.env
+          sed -i "s/<TOKEN_NAME>/$TOKEN_NAME/g" .integration.env
+          sed -i "s/<TOKEN_SYMBOL>/$TOKEN_SYMBOL/g" .integration.env
       - name: Compile 🏗️
-        run: npx hardhat scripts/deploy.js --network kovan
+        run: npx run deploy:kovan
     env:
       ALCHEMY_APIKEY: ${{ secrets.ALCHEMYAPIKEY }}
       KOVAN_PRIVATE_KEY: ${{ secrets.KOVAN_PRIVATE_KEY }}
