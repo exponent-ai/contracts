@@ -1,6 +1,7 @@
 pragma solidity ^0.8.0;
 
 import "./XPNUtils.sol";
+import "hardhat/console.sol";
 import "./interface/ISignal.sol";
 import "./XPNSignalMath.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -70,8 +71,9 @@ contract XPNPortfolio {
         TODO: refactor 
         */
         // resolves symbols to addresses
-        int256[] memory tokens;
         string[] memory symbols = signalPool.getSignalMeta(signalName);
+        int256[] memory tokens = new int256[](symbols.length);
+
         for (uint256 i = 0; i < symbols.length; i++) {
             tokens[i] = int256(
                 IERC20(_getSymbolToToken(symbols[i])).balanceOf(
@@ -84,7 +86,7 @@ contract XPNPortfolio {
 
     function _getTokensPrice() internal view virtual returns (int256[] memory) {
         string[] memory symbols = signalPool.getSignalMeta(signalName);
-        int256[] memory prices;
+        int256[] memory prices = new int256[](symbols.length);
         // resolves symbol to asset token
         for (uint256 i; i < symbols.length; i++) {
             string memory symbol = symbols[i];
@@ -178,6 +180,7 @@ contract XPNPortfolio {
     modifier ensureTrade() {
         int256 preTradeValue = _portfolioValue();
         int256 preTradeDistance = _signalPortfolioDiffPercent();
+
         _;
         int256 distanceImproved =
             preTradeDistance - _signalPortfolioDiffPercent();
