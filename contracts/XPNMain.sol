@@ -147,4 +147,12 @@ contract XPNMain is IXPN, XPNCore {
     function configInitialized() external view returns (bool) {
         return _isConfigInitialized();
     }
+
+    function addAssetConfig(
+        string memory _symbol,
+        address _token,
+        address _feed
+    ) external {
+        _addAssetConfig(_symbol, _token, _feed);
+    }
 }
