@@ -1,5 +1,6 @@
 require("dotenv").config();
 const { expect } = require("chai");
+
 const { randomAddress } = require("../utils/address.js");
 const {
   seedBalance,
@@ -15,7 +16,7 @@ const {
   convertRateToScaledPerSecondRate,
 } = require("@enzymefinance/protocol");
 
-describe.only("XPN life cycle", function () {
+describe("XPN life cycle", function () {
   describe("XPN happy path", function () {
     /*
         set up
@@ -233,9 +234,19 @@ describe.only("XPN life cycle", function () {
     });
 
     it("withdraw principle", async function () {
+      var preWETH = await contracts.WETH.balanceOf(this.depositor.address);
+      var preUSDC = await contracts.USDC.balanceOf(this.depositor.address);
+
       await this.main
         .connect(this.depositor)
         .withdraw(ethers.utils.parseUnits("50", 18));
+
+      expect(
+        await contracts.WETH.balanceOf(this.depositor.address)
+      ).to.be.above(preWETH);
+      expect(
+        await contracts.USDC.balanceOf(this.depositor.address)
+      ).to.be.above(preUSDC);
     });
   });
 });
