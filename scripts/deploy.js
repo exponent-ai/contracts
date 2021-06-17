@@ -1,6 +1,6 @@
 const path = require("path");
 require("dotenv").config({
-  path: path.resolve(process.cwd(), ".integration.env"),
+  path: path.resolve(process.cwd(), ".staging.env"),
 });
 
 async function main() {
