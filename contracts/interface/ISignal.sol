@@ -24,6 +24,5 @@ interface ISignal {
         external
         view
         returns (string[] memory);
-
     function getMetaData() external view returns (string memory);
 }

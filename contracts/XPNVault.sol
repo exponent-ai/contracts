@@ -87,7 +87,6 @@ contract XPNVault is ReentrancyGuard {
 
     function _redeemFees(address _feeManager, address[] calldata _fees)
         internal
-        nonReentrant
         returns (address[] memory payoutAssets, uint256[] memory payoutAmounts)
     {
         _redeemFeesHook(_feeManager, _fees);
