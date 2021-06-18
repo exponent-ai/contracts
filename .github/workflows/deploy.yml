@@ -1,9 +1,9 @@
 name: Deploy
 
 on:
-    create:
-      tags:
-        - v*
+  push:
+    tags:
+      - v*
 
 jobs:
   deploy-kovan:
