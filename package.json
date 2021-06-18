@@ -1,6 +1,6 @@
 {
   "name": "exponent-protocol",
-  "version": "0.1.0-alpha",
+  "version": "v0.1.0-alpha",
   "description": "Smart contracts for Exponent project",
   "main": "index.js",
   "scripts": {
