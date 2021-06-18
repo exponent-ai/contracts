@@ -2,6 +2,9 @@ require("@nomiclabs/hardhat-waffle");
 require("hardhat-gas-reporter");
 require("@nomiclabs/hardhat-solhint");
 require("hardhat-abi-exporter");
+require("solidity-coverage");
+
+const { ALCHEMY_APIKEY, KOVAN_PRIVATE_KEY } = process.env;
 
 // This is a sample Hardhat task. To learn how to create your own go to
 // https://hardhat.org/guides/create-task.html
@@ -23,18 +26,31 @@ module.exports = {
   solidity: {
     compilers: [
       {
-        version: "0.7.0",
-      },
-      {
         version: "0.8.0",
+        settings: {
+          optimizer: {
+            enabled: true,
+            runs: 200,
+          },
+        },
       },
     ],
   },
+  networks:
+    ALCHEMY_APIKEY && KOVAN_PRIVATE_KEY
+      ? {
+          kovan: {
+            url: `https://eth-kovan.alchemyapi.io/v2/${ALCHEMY_APIKEY}`,
+            accounts: [`0x${KOVAN_PRIVATE_KEY}`],
+            gas: "auto",
+          },
+        }
+      : {},
   abiExporter: {
     path: "./data/abi",
     clear: true,
     flat: true,
-    only: ["IXPN"],
+    only: ["IXPN", "IIntegrationManager"],
     spacing: 2,
   },
   gasReporter: {

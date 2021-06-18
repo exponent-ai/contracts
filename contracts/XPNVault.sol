@@ -15,6 +15,7 @@ contract XPNVault is ReentrancyGuard {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
+    //TODO denomAsset state should be hydrated by the inheriter
     IERC20 public denomAsset;
     LPToken public lptoken;
 
@@ -86,7 +87,6 @@ contract XPNVault is ReentrancyGuard {
 
     function _redeemFees(address _feeManager, address[] calldata _fees)
         internal
-        nonReentrant
         returns (address[] memory payoutAssets, uint256[] memory payoutAmounts)
     {
         _redeemFeesHook(_feeManager, _fees);

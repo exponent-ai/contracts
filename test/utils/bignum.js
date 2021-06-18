@@ -8,7 +8,12 @@ function bignumToStringArray(bignums) {
   });
 }
 
+function padZeros(number, NZero) {
+  return number + "0".repeat(NZero);
+}
+
 module.exports = {
   bignumToString,
   bignumToStringArray,
+  padZeros,
 };

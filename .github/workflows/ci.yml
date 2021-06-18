@@ -3,7 +3,7 @@ name: CI
 on:
   push:
     branches:
-      - '*'
+      - "*"
   pull_request:
     branches:
       - develop
@@ -22,6 +22,8 @@ jobs:
         run: npm run compile
       - name: Test 🚨
         run: npm run -s test:report
+      - name: Test Coverage 📈
+        run: npm run -s test:coverage
       - name: Test Report 📝
         uses: dorny/test-reporter@v1
         if: success() || failure()
@@ -53,7 +55,7 @@ jobs:
         run: npm install
       - name: Lint 🧐
         run: npm run eslint
-  sollint:
+  solhint:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout 🛎️
@@ -62,5 +64,5 @@ jobs:
           persist-credentials: false
       - name: Install 🔧
         run: npm install
-      - name: Lint 🧐
-        run: npm run sollint
+      - name: Hint 🧐
+        run: npm run hint

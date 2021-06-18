@@ -15,6 +15,13 @@ contract IntXPNVSettlementSpy is XPNSettlement {
         integrationManager = _integrationManager;
     }
 
+    function submitTradeOrders(
+        bytes[] calldata _trades,
+        address[] memory _venues
+    ) external {
+        _submitTradeOrders(_trades, _venues);
+    }
+
     function _submitTrade(bytes calldata _trade, address _venue)
         internal
         override
@@ -26,6 +33,15 @@ contract IntXPNVSettlementSpy is XPNSettlement {
             0,
             callargs
         );
+        return true;
+    }
+
+    function _venueIsWhitelisted(address)
+        internal
+        view
+        override
+        returns (bool)
+    {
         return true;
     }
 }
