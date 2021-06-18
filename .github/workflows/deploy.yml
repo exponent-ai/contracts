@@ -1,0 +1,59 @@
+name: Deploy
+
+on:
+  tags:
+    - v*
+
+jobs:
+  deploy-kovan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout 🛎️
+        uses: actions/checkout@v2
+        with:
+          persist-credentials: false
+      - name: Install 🔧
+        run: npm install
+      - name: Create .env 💻
+        run: |
+          cp env.staging.sample .staging.env
+          sed -i "s/<ADMIN_ADDRESS>/$ADMIN_ADDRESS/g" .staging.env
+          sed -i "s/<SETTLER_ADDRESS>/$SETTLER_ADDRESS/g" .staging.env
+          sed -i "s/<ENZYME_DEPLOYER>/$ENZYME_DEPLOYER/g" .staging.env
+          sed -i "s/<ENZYME_INT_MANAGER>/$ENZYME_INT_MANAGER/g" .staging.env
+          sed -i "s/<ENZYME_ASSET_ADAPTER>/$ENZYME_ASSET_ADAPTER/g" .staging.env
+          sed -i "s/<ENZYME_POLICY_MANAGER>/$ENZYME_POLICY_MANAGER/g" .staging.env
+          sed -i "s/<ENZYME_INVESTOR_WHITELIST>/$ENZYME_INVESTOR_WHITELIST/g" .staging.env
+          sed -i "s/<DENOM_ASSET_ADDRESS>/$DENOM_ASSET_ADDRESS/g" .staging.env
+          sed -i "s/<DENOM_ASSET_SYMBOL>/$DENOM_ASSET_SYMBOL/g" .staging.env
+          sed -i "s/<VAULT_NAME>/$VAULT_NAME/g" .staging.env
+          sed -i "s/<TOKEN_NAME>/$TOKEN_NAME/g" .staging.env
+          sed -i "s/<TOKEN_SYMBOL>/$TOKEN_SYMBOL/g" .staging.env
+      - name: Compile 🏗️
+        run: npx run deploy:kovan
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ALCHEMY_APIKEY: ${{ secrets.ALCHEMY_APIKEY_STAGING }}
+          KOVAN_PRIVATE_KEY: ${{ secrets.KOVAN_PRIVATE_KEY }}
+          ADMIN_ADDRESS: ${{ secrets.ADMIN_ADDRESS }}
+          SETTLER_ADDRESS: ${{ secrets.SETTLER_ADDRESS }}
+          ENZYME_DEPLOYER: ${{ secrets.ENZYME_DEPLOYER }}
+          ENZYME_INT_MANAGER: ${{ secrets.ENZYME_INT_MANAGER }}
+          ENZYME_ASSET_ADAPTER: ${{ secrets.ENZYME_ASSET_ADAPTER }}
+          ENZYME_POLICY_MANAGER: ${{ secrets.ENZYME_POLICY_MANAGER }}
+          ENZYME_INVESTOR_WHITELIST: ${{ secrets.ENZYME_INVESTOR_WHITELIST }}
+          DENOM_ASSET_ADDRESS: ${{ secrets.DENOM_ASSET_ADDRESS }}
+          DENOM_ASSET_SYMBOL: ${{ secrets.DENOM_ASSET_SYMBOL }}
+          VAULT_NAME: ${{ secrets.VAULT_NAME }}
+          TOKEN_NAME: ${{ secrets.TOKEN_NAME }}
+          TOKEN_SYMBOL: ${{ secrets.TOKEN_SYMBOL }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          body: |
+            Please update the changelog
+          draft: false
+          prerelease: false

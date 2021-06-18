@@ -18,7 +18,9 @@
     "hint": "npx hardhat check",
     "compile": "npx hardhat compile",
     "format": "prettier --write ./test",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "deploy": "npx hardhat run scripts/deploy.js",
+    "deploy:kovan": "npx hardhat run scripts/deploy.js --network kovan"
   },
   "repository": {
     "type": "git",
