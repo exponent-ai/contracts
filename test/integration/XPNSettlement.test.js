@@ -1,6 +1,10 @@
 require("dotenv").config();
 const { expect } = require("chai");
-const { kyberTakeOrderArgs } = require("@enzymefinance/protocol");
+const {
+  kyberTakeOrderArgs,
+  aaveLendArgs,
+  aaveRedeemArgs,
+} = require("@enzymefinance/protocol");
 const {
   seedBalance,
   initMainnetEnv,
@@ -92,6 +96,38 @@ describe("XPNSettlement", function () {
     const postwethbal = await contracts.WETH.balanceOf(this.testVault);
     const postusdcbal = await contracts.USDC.balanceOf(this.testVault);
     expect(prewethbal).to.be.above(postwethbal);
+    expect(preusdcbal).to.be.below(postusdcbal);
+  });
+  it("can submit lending transaction", async function () {
+    this.timeout(100000);
+    this.preusdcbal = await contracts.USDC.balanceOf(this.testVault);
+    const lendArgs = aaveLendArgs({
+      aToken: contracts.AUSDC.address,
+      amount: this.preusdcbal,
+    });
+    const aaveVenue = contracts.ENZYME_AAVE_ADAPTER.address;
+    await this.settler.submitPoolOrders(
+      Array.of(lendArgs),
+      Array.of(0), // lending tx-type
+      Array.of(aaveVenue)
+    );
+    const postusdcbal = await contracts.USDC.balanceOf(this.testVault);
+    expect(this.preusdcbal).to.be.above(postusdcbal);
+  });
+  it("can submit redemption transaction", async function () {
+    this.timeout(100000);
+    const preusdcbal = await contracts.USDC.balanceOf(this.testVault);
+    const redeemArgs = aaveLendArgs({
+      aToken: contracts.AUSDC.address,
+      amount: this.preusdcbal.sub(ethers.BigNumber.from(100000000)), // subtrack fees
+    });
+    const aaveVenue = contracts.ENZYME_AAVE_ADAPTER.address;
+    await this.settler.submitPoolOrders(
+      Array.of(redeemArgs),
+      Array.of(1), // redeem tx-type
+      Array.of(aaveVenue)
+    );
+    const postusdcbal = await contracts.USDC.balanceOf(this.testVault);
     expect(preusdcbal).to.be.below(postusdcbal);
   });
 });

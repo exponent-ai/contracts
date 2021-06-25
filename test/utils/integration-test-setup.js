@@ -37,6 +37,14 @@ const contracts = [
     name: "ENZYME_INVESTOR_WHITELIST",
     address: process.env.ENZYME_INVESTOR_WHITELIST,
   },
+  {
+    name: "ENZYME_AAVE_ADAPTER",
+    address: process.env.ENZYME_AAVE_ADAPTER,
+  },
+  {
+    name: "AUSDC",
+    address: process.env.AUSDC_ADDRESS,
+  },
 ];
 
 async function initMainnetEnv() {

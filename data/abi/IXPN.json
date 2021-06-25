@@ -135,6 +135,35 @@
     "inputs": [
       {
         "internalType": "bytes[]",
+        "name": "_orders",
+        "type": "bytes[]"
+      },
+      {
+        "internalType": "enum XPNSettlement.Pool[]",
+        "name": "_txTypes",
+        "type": "uint8[]"
+      },
+      {
+        "internalType": "address[]",
+        "name": "_venues",
+        "type": "address[]"
+      }
+    ],
+    "name": "submitPoolOrders",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes[]",
         "name": "_trades",
         "type": "bytes[]"
       },

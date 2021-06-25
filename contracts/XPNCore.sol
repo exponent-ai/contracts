@@ -41,6 +41,12 @@ contract XPNCore is XPNVault, XPNSettlement, XPNPortfolio {
     // @notice a hardcoded selector for all Enzyme DEX trades
     bytes4 constant TAKE_ORDER_SELECTOR =
         bytes4(keccak256("takeOrder(address,bytes,bytes)"));
+    // @notice a hardcoded selector for all Enzyme lending
+    bytes4 constant LEND_ORDER_SELECTOR =
+        bytes4(keccak256("lend(address,bytes,bytes)"));
+    // @notice a hardcoded selector for all Enzyme redemption
+    bytes4 constant REDEEM_ORDER_SELECTOR =
+        bytes4(keccak256("redeem(address,bytes,bytes)"));
 
     bool private configInitialized;
 
@@ -159,12 +165,20 @@ contract XPNCore is XPNVault, XPNSettlement, XPNPortfolio {
         emit AssetDeWhitelisted(_asset);
     }
 
-    function _settle(bytes[] calldata _trades, address[] memory _venues)
+    function _settleTrade(bytes[] calldata _trades, address[] memory _venues)
         internal
         ensureTrade
         returns (bool)
     {
         return _submitTradeOrders(_trades, _venues);
+    }
+
+    function _settlePool(
+        bytes[] calldata _orders,
+        Pool[] calldata _txTypes,
+        address[] memory _venues
+    ) internal ensureTrade returns (bool) {
+        return _submitPoolOrders(_orders, _txTypes, _venues);
     }
 
     // @notice verify that the assets in the provided signal contract is supported
@@ -297,6 +311,36 @@ contract XPNCore is XPNVault, XPNSettlement, XPNPortfolio {
         returns (bool successfulTrade)
     {
         bytes memory callargs = abi.encode(_venue, TAKE_ORDER_SELECTOR, _trade);
+        IComptroller(globalState.EZcomptroller).callOnExtension(
+            globalState.EZintegrationManager,
+            0,
+            callargs
+        );
+        return true;
+    }
+
+    function _submitLending(bytes calldata _lending, address _venue)
+        internal
+        override
+        returns (bool)
+    {
+        bytes memory callargs =
+            abi.encode(_venue, LEND_ORDER_SELECTOR, _lending);
+        IComptroller(globalState.EZcomptroller).callOnExtension(
+            globalState.EZintegrationManager,
+            0,
+            callargs
+        );
+        return true;
+    }
+
+    function _submitRedemption(bytes calldata _redemption, address _venue)
+        internal
+        override
+        returns (bool)
+    {
+        bytes memory callargs =
+            abi.encode(_venue, REDEEM_ORDER_SELECTOR, _redemption);
         IComptroller(globalState.EZcomptroller).callOnExtension(
             globalState.EZintegrationManager,
             0,

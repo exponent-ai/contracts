@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: Unlicense
 pragma solidity >=0.6.0;
 
+import "../XPNSettlement.sol";
+
 interface IXPN {
     function deposit(uint256) external returns (uint256);
 
@@ -10,6 +12,12 @@ interface IXPN {
 
     function submitTradeOrders(
         bytes[] calldata _trades,
+        address[] memory _venues
+    ) external returns (bool);
+
+    function submitPoolOrders(
+        bytes[] calldata _orders,
+        XPNSettlement.Pool[] calldata _txTypes,
         address[] memory _venues
     ) external returns (bool);
 

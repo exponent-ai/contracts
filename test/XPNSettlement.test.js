@@ -1,5 +1,9 @@
 const { expect } = require("chai");
-const { kyberTakeOrderArgs } = require("@enzymefinance/protocol");
+const {
+  kyberTakeOrderArgs,
+  aaveLendArgs,
+  aaveRedeemArgs,
+} = require("@enzymefinance/protocol");
 const { randomAddress } = require("./utils/address.js");
 
 describe("XPNSettlement", function () {
@@ -8,6 +12,8 @@ describe("XPNSettlement", function () {
     const XPNSettlement = await ethers.getContractFactory("XPNSettlementSpy");
     this.tradesettlement = await XPNSettlement.deploy();
     await this.tradesettlement.deployed();
+    this.mockVenue = randomAddress();
+    this.mockToken = randomAddress();
   });
   describe("submitTradeOrders", function () {
     beforeEach(async function () {
@@ -58,7 +64,7 @@ describe("XPNSettlement", function () {
           Array.of(...arg, ...arg, ...arg)
         ) // submits 3 trades
       );
-      expect(await this.tradesettlement.count()).to.be.equal(3);
+      expect(await this.tradesettlement.tradecount()).to.be.equal(3);
     });
     it("should emit an event on successful trade", async function () {
       await this.tradesettlement.setIsWhitelist(true);
@@ -68,6 +74,86 @@ describe("XPNSettlement", function () {
       )
         .to.emit(this.tradesettlement, "SubmitTradeOrders")
         .withArgs(this.deployer.address, this.order.trades, this.order.venues);
+    });
+  });
+  describe("submitPoolOrders", function () {
+    it("should reject if orders input length not equal", async function () {
+      const lendArgs = aaveLendArgs({
+        aToken: this.mockToken,
+        amount: 1000,
+      });
+      await expect(
+        this.tradesettlement.submitPoolOrders(
+          Array.of(lendArgs),
+          Array.of(0, 1), // wrong number of arguments
+          Array.of(this.mockVenue)
+        )
+      ).to.be.revertedWith(
+        "TradeSettlement: pool submissions input length not equal"
+      );
+    });
+
+    it("should reject if a venue is not whitelisted", async function () {
+      await this.tradesettlement.setIsWhitelist(false);
+      const lendArgs = aaveLendArgs({
+        aToken: this.mockToken,
+        amount: 1000,
+      });
+      await expect(
+        this.tradesettlement.submitPoolOrders(
+          Array.of(lendArgs),
+          Array.of(0),
+          Array.of(this.mockVenue)
+        )
+      ).to.be.revertedWith("XPNSettlement: venue is not whitelisted");
+    });
+
+    it("should reject if implementation returned false", async function () {
+      await this.tradesettlement.setIsWhitelist(true);
+      await this.tradesettlement.setReturnMsg(false);
+      const lendArgs = aaveLendArgs({
+        aToken: this.mockToken,
+        amount: 1000,
+      });
+      await expect(
+        this.tradesettlement.submitPoolOrders(
+          Array.of(lendArgs),
+          Array.of(0),
+          Array.of(this.mockVenue)
+        )
+      ).to.be.revertedWith("XPNSettlement: a trade did not execute");
+    });
+
+    it("should emit a Lend event on successful lend transaction", async function () {
+      await this.tradesettlement.setIsWhitelist(true);
+      await this.tradesettlement.setReturnMsg(true);
+      const lendArgs = aaveLendArgs({
+        aToken: this.mockToken,
+        amount: 1000,
+      });
+      await expect(
+        this.tradesettlement.submitPoolOrders(
+          Array.of(lendArgs),
+          Array.of(0),
+          Array.of(this.mockVenue)
+        )
+      ).to.emit(this.tradesettlement, "Lend");
+    });
+
+    it("should emit a Redeem event on successful redeem transaction", async function () {
+      await this.tradesettlement.setIsWhitelist(true);
+      await this.tradesettlement.setReturnMsg(true);
+      const lendArgs = aaveLendArgs({
+        aToken: this.mockToken,
+        amount: 1000,
+      });
+      await expect(
+        this.tradesettlement.submitPoolOrders(
+          Array.of(lendArgs),
+          Array.of(1),
+          Array.of(this.mockVenue)
+        )
+      ).to.emit(this.tradesettlement, "Redeem");
     });
   });
 });

@@ -67,7 +67,16 @@ contract XPNMain is IXPN, XPNCore {
         bytes[] calldata _trades,
         address[] memory _venues
     ) external override returns (bool) {
-        return _settle(_trades, _venues);
+        return _settleTrade(_trades, _venues);
+    }
+
+    // submit pool order
+    function submitPoolOrders(
+        bytes[] calldata _orders,
+        XPNSettlement.Pool[] calldata _txTypes,
+        address[] memory _venues
+    ) external override returns (bool) {
+        return _settlePool(_orders, _txTypes, _venues);
     }
 
     // add tracked asset
