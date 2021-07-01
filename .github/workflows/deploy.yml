@@ -2,8 +2,8 @@ name: Deploy
 
 on:
   push:
-    tags:
-      - v*
+    branch:
+      - master
 
 jobs:
   deploy-kovan:
@@ -30,15 +30,7 @@ jobs:
           sed -i "s/<VAULT_NAME>/$VAULT_NAME/g" .staging.env
           sed -i "s/<TOKEN_NAME>/$TOKEN_NAME/g" .staging.env
           sed -i "s/<TOKEN_SYMBOL>/$TOKEN_SYMBOL/g" .staging.env
-      - name: Compile 🏗️
-        run: npx run deploy:kovan
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          ALCHEMY_APIKEY: ${{ secrets.ALCHEMY_APIKEY_STAGING }}
-          KOVAN_PRIVATE_KEY: ${{ secrets.KOVAN_PRIVATE_KEY }}
           ADMIN_ADDRESS: ${{ secrets.ADMIN_ADDRESS }}
           SETTLER_ADDRESS: ${{ secrets.SETTLER_ADDRESS }}
           ENZYME_DEPLOYER: ${{ secrets.ENZYME_DEPLOYER }}
@@ -51,10 +43,37 @@ jobs:
           VAULT_NAME: ${{ secrets.VAULT_NAME }}
           TOKEN_NAME: ${{ secrets.TOKEN_NAME }}
           TOKEN_SYMBOL: ${{ secrets.TOKEN_SYMBOL }}
+      - name: Compile 🏗️
+        run: npm run compile
+      - name: Deploy 🏗️
+        run: npm run deploy:kovan
+        env:
+          ALCHEMY_APIKEY: ${{ secrets.ALCHEMY_APIKEY_STAGING }}
+          KOVAN_PRIVATE_KEY: ${{ secrets.KOVAN_PRIVATE_KEY }}
+      - name: nodejs project information
+        id: projectinfo
+        uses: gregoranders/nodejs-project-info@v0.0.11
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ github.ref }}
-          release_name: Release ${{ github.ref }}
+          tag_name: v${{ steps.projectinfo.outputs.version }}
+          release_name: ${{ steps.projectinfo.outputs.name }} - ${{ steps.projectinfo.outputs.version }} Release
           body: |
             Please update the changelog
           draft: false
           prerelease: false
+      - name: Zip artifacts
+        run: |
+          zip -r abi ./data/abi
+      - name: upload artifacts
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./abi.zip
+          asset_name: abi.zip
+          asset_content_type: application/zip
