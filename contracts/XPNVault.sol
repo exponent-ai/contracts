@@ -11,7 +11,7 @@ import "hardhat/console.sol";
 // @title core application logic for vault
 // @notice to be inherited by the implementation contract for added functionality
 // @dev deposit/ withdraw hooks and calculation must be overridden
-contract XPNVault is ReentrancyGuard {
+abstract contract XPNVault is ReentrancyGuard {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
@@ -71,7 +71,6 @@ contract XPNVault is ReentrancyGuard {
     // @return assets and amount of to be withdrawn
     function _withdraw(uint256 _amount)
         internal
-        nonReentrant
         returns (address[] memory payoutAssets, uint256[] memory payoutAmounts)
     {
         require(_amount > 0, "Vault: _amount cant be zero");

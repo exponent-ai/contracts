@@ -20,8 +20,8 @@ contract XPNCore is XPNVault, XPNSettlement, XPNPortfolio {
 
     //TODO make external contract explicit
     struct State {
-        address admin; // xpn admin account
-        address settler; // EOA responsible for calling settlement
+        address defaultAdmin; // xpn admin account, only used on deployment
+        address defaultSettler; // EOA responsible for calling settlement, only used on deployment
         address signal; // contract address for signal to pull from
         string denomAssetSymbol; // symbol of the denominated asset
         address EZdeployer; // Enzyme FundDeployer contract
@@ -49,16 +49,21 @@ contract XPNCore is XPNVault, XPNSettlement, XPNPortfolio {
         bytes4(keccak256("redeem(address,bytes,bytes)"));
 
     bool private configInitialized;
+    bool private restricted;
 
+    mapping(address => bool) private walletWhitelist;
     mapping(address => bool) private venueWhitelist;
     mapping(address => bool) private assetWhitelist;
     mapping(string => address) private symbolToAsset;
     mapping(address => address) private assetToPriceFeed;
 
+    event SetRestricted(bool toggle);
+    event WalletWhitelisted(address wallet);
+    event WalletDeWhitelisted(address wallet);
     event VenueWhitelisted(address venue);
-    event AssetWhitelisted(address venue);
     event VenueDeWhitelisted(address venue);
-    event AssetDeWhitelisted(address venue);
+    event AssetWhitelisted(address asset);
+    event AssetDeWhitelisted(address asset);
     event TrackedAssetAdded(address asset);
     event TrackedAssetRemoved(address asset);
     event AssetConfigAdded(string symbol, address asset, address feed);
@@ -96,7 +101,7 @@ contract XPNCore is XPNVault, XPNSettlement, XPNPortfolio {
     function _initializeFundConfig() internal {
         require(!configInitialized, "XPNCore: config already initialized");
         // only if signal supports whitelisted assets
-        _verifySignal(globalState.signal, _getSignalName()); //TODO should pass name from globalState
+        _verifySignal(globalState.signal, _getSignalName());
         // only this contract can deposit
         address[] memory buyersToAdd = new address[](1);
         address[] memory buyersToRemove = new address[](0);
@@ -108,6 +113,11 @@ contract XPNCore is XPNVault, XPNSettlement, XPNPortfolio {
             policySettings
         );
         configInitialized = true;
+    }
+
+    function _setRestricted(bool _toggle) internal {
+        restricted = _toggle;
+        emit SetRestricted(_toggle);
     }
 
     // @notice configure token address and price feed to symbol
@@ -130,11 +140,6 @@ contract XPNCore is XPNVault, XPNSettlement, XPNPortfolio {
         emit AssetConfigRemoved(_symbol);
     }
 
-    // @notice identify who can create settlement transaction
-    function _swapSettler(address _newSettler) internal {
-        globalState.settler = _newSettler;
-    }
-
     // @notice swap out to another signal contract
     // @dev will ensure that the signal supports the correct asset symbols, but makes no correctness assumption
     // TODO should take signal and name inside globalState
@@ -145,19 +150,27 @@ contract XPNCore is XPNVault, XPNSettlement, XPNPortfolio {
         emit NewSignal(_signal);
     }
 
+    function _whitelistWallet(address _wallet) internal {
+        walletWhitelist[_wallet] = true;
+    }
+
+    function _deWhitelistWallet(address _wallet) internal {
+        walletWhitelist[_wallet] = false;
+    }
+
     function _whitelistVenue(address _venue) internal {
         venueWhitelist[_venue] = true;
         emit VenueWhitelisted(_venue);
     }
 
-    function _whitelistAsset(address _asset) internal {
-        assetWhitelist[_asset] = true;
-        emit AssetWhitelisted(_asset);
-    }
-
     function _deWhitelistVenue(address _venue) internal {
         venueWhitelist[_venue] = false;
         emit VenueDeWhitelisted(_venue);
+    }
+
+    function _whitelistAsset(address _asset) internal {
+        assetWhitelist[_asset] = true;
+        emit AssetWhitelisted(_asset);
     }
 
     function _deWhitelistAsset(address _asset) internal {
@@ -167,7 +180,6 @@ contract XPNCore is XPNVault, XPNSettlement, XPNPortfolio {
 
     function _settleTrade(bytes[] calldata _trades, address[] memory _venues)
         internal
-        ensureTrade
         returns (bool)
     {
         return _submitTradeOrders(_trades, _venues);
@@ -177,7 +189,7 @@ contract XPNCore is XPNVault, XPNSettlement, XPNPortfolio {
         bytes[] calldata _orders,
         Pool[] calldata _txTypes,
         address[] memory _venues
-    ) internal ensureTrade returns (bool) {
+    ) internal returns (bool) {
         return _submitPoolOrders(_orders, _txTypes, _venues);
     }
 
@@ -371,16 +383,8 @@ contract XPNCore is XPNVault, XPNSettlement, XPNPortfolio {
         return globalState.EZshares;
     }
 
-    function _getAdminAddress() internal view override returns (address) {
-        return globalState.admin;
-    }
-
     function _getPolicyAddress() internal view returns (address) {
         return globalState.EZpolicy;
-    }
-
-    function _getSettlerAddress() internal view returns (address) {
-        return globalState.settler;
     }
 
     function _getTrackedAssetAddress() internal view returns (address) {
@@ -424,5 +428,13 @@ contract XPNCore is XPNVault, XPNSettlement, XPNPortfolio {
 
     function _isAssetWhitelisted(address _asset) internal view returns (bool) {
         return assetWhitelist[_asset];
+    }
+
+    function _isWalletWhitelisted(address wallet) internal view returns (bool) {
+        return walletWhitelist[wallet];
+    }
+
+    function _isRestricted() internal view returns (bool) {
+        return restricted;
     }
 }

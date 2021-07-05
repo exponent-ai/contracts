@@ -49,10 +49,6 @@ contract IntXPNCoreSpy is XPNCore {
         _initializeFundConfig();
     }
 
-    function swapSettler(address _newSettler) external {
-        _swapSettler(_newSettler);
-    }
-
     function removeTrackedAsset(address _asset) external {
         _removeTrackedAsset(_asset);
     }
@@ -96,20 +92,12 @@ contract IntXPNCoreSpy is XPNCore {
         return _getSharesAddress();
     }
 
-    function getAdminAddress() external view returns (address) {
-        return _getAdminAddress();
-    }
-
     function getWhitelistPolicyAddress() external view returns (address) {
         return _getWhitelistPolicyAddress();
     }
 
     function getPolicyAddress() external view returns (address) {
         return _getPolicyAddress();
-    }
-
-    function getSettlerAddress() external view returns (address) {
-        return _getSettlerAddress();
     }
 
     function getTrackedAssetAddress() external view returns (address) {

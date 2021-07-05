@@ -7,7 +7,7 @@ import "./XPNSignalMath.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 // @notice portfolio module.
-contract XPNPortfolio {
+abstract contract XPNPortfolio {
     using XPNSignalMath for int256[];
     int256 public constant ONE = 1e18;
 

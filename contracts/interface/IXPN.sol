@@ -2,13 +2,25 @@
 pragma solidity >=0.6.0;
 
 import "../XPNSettlement.sol";
+import "@openzeppelin/contracts/access/AccessControlEnumerable.sol";
 
-interface IXPN {
+interface IXPN is IAccessControlEnumerable {
     function deposit(uint256) external returns (uint256);
 
     function withdraw(uint256)
         external
         returns (address[] memory, uint256[] memory);
+
+    function submitTrustedTradeOrders(
+        bytes[] calldata _trades,
+        address[] memory _venues
+    ) external returns (bool);
+
+    function submitTrustedPoolOrders(
+        bytes[] calldata _orders,
+        XPNSettlement.Pool[] calldata _txTypes,
+        address[] memory _venues
+    ) external returns (bool);
 
     function submitTradeOrders(
         bytes[] calldata _trades,
@@ -21,15 +33,9 @@ interface IXPN {
         address[] memory _venues
     ) external returns (bool);
 
-    function calcGav(bool) external returns (uint256, bool);
+    function getSignalPool() external view returns (address);
 
-    function calcGrossLPValue(bool) external returns (uint256, bool);
-
-    function getTrackedAssets() external view returns (address[] memory);
-
-    function getStrategistAddress() external view returns (address);
-
-    function getAdminAddress() external view returns (address);
+    function getSignalName() external view returns (string memory);
 
     function getLPTokenAddress() external view returns (address);
 

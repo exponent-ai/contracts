@@ -161,15 +161,6 @@ describe("XPNCore", function () {
     });
   });
 
-  describe("swapSettler", async function () {
-    it("changes settler successfully", async function () {
-      await this.core.swapSettler(this.settler2.address);
-      expect(await this.core.getSettlerAddress()).to.be.equal(
-        this.settler2.address
-      );
-    });
-  });
-
   describe("whitelistVenue", async function () {
     it("emits event when successfully whitelisted", async function () {
       await expect(this.core.whitelistVenue(this.mockAddress))
@@ -208,15 +199,11 @@ describe("XPNCore", function () {
 
   describe("stateGetters", async function () {
     it("can fetch the correct internal addresses", async function () {
-      expect(await this.core.getAdminAddress()).to.be.equal(this.admin.address);
       expect(await this.core.getPolicyAddress()).to.be.equal(
         this.policymanager.address
       );
       expect(await this.core.getWhitelistPolicyAddress()).to.be.equal(
         this.whitelistPolicy
-      );
-      expect(await this.core.getSettlerAddress()).to.be.equal(
-        this.settler.address
       );
       expect(await this.core.getTrackedAssetAddress()).to.be.equal(
         this.trackedAssetAdapterAddress

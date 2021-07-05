@@ -2,7 +2,7 @@
 pragma solidity ^0.8.0;
 
 // @title core application logic and API for trade submissions
-contract XPNSettlement {
+abstract contract XPNSettlement {
     event SubmitTradeOrders(address indexed, bytes[], address[]);
     event Lend(address indexed, bytes, address);
     event Redeem(address indexed, bytes, address);
