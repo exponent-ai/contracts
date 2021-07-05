@@ -53,6 +53,8 @@ contract XPNCore is XPNVault, XPNSettlement, XPNPortfolio {
 
     // @notice application state
     State private globalState;
+    // @notice the contract state after successful migration
+    State private postMigrationState;
 
     // @notice a hardcoded selector for all Enzyme DEX trades
     bytes4 constant TAKE_ORDER_SELECTOR =
@@ -85,6 +87,9 @@ contract XPNCore is XPNVault, XPNSettlement, XPNPortfolio {
     event AssetConfigAdded(string symbol, address asset, address feed);
     event AssetConfigRemoved(string symbol);
     event NewSignal(address signal);
+    event MigrationCreated(State postMigrationState);
+    event MigrationSignaled();
+    event MigrationExecuted();
 
     constructor(
         State memory _constructorConfig,
@@ -391,6 +396,36 @@ contract XPNCore is XPNVault, XPNSettlement, XPNPortfolio {
             1,
             abi.encode(_fees)
         );
+    }
+
+    // enzyme vault migration
+    function _createMigration(State memory _newState) internal {
+        postMigrationState = _newState;
+        address newComptrollerProxy =
+            IFundDeployer(postMigrationState.EZdeployer)
+                .createMigratedFundConfig(address(denomAsset), 0, "", "");
+        postMigrationState.EZcomptroller = newComptrollerProxy;
+        postMigrationState.EZshares = globalState.EZshares; //ensure that the shares address never changes
+        emit MigrationCreated(_newState);
+    }
+
+    function _signalMigration() internal {
+        IFundDeployer(postMigrationState.EZdeployer).signalMigration(
+            globalState.EZshares,
+            postMigrationState.EZcomptroller
+        );
+        // set configInitialized to false to prevent further deposit
+        configInitialized = false;
+        emit MigrationSignaled();
+    }
+
+    function _executeMigration() internal {
+        IFundDeployer(postMigrationState.EZdeployer).executeMigration(
+            globalState.EZshares
+        );
+        globalState = postMigrationState;
+        _initializeFundConfig();
+        emit MigrationExecuted();
     }
 
     // state getters

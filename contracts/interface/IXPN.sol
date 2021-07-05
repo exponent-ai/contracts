@@ -2,6 +2,7 @@
 pragma solidity >=0.6.0;
 
 import "../XPNSettlement.sol";
+import "../XPNCore.sol";
 import "@openzeppelin/contracts/access/AccessControlEnumerable.sol";
 
 interface IXPN is IAccessControlEnumerable {
@@ -40,4 +41,10 @@ interface IXPN is IAccessControlEnumerable {
     function getLPTokenAddress() external view returns (address);
 
     function getDenominationAsset() external view returns (address);
+
+    function createMigration(XPNCore.State memory) external;
+
+    function signalMigration() external;
+
+    function executeMigration() external;
 }

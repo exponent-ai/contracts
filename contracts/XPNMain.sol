@@ -129,7 +129,7 @@ contract XPNMain is IXPN, XPNCore, AccessControlEnumerable {
     {
         _deWhitelistAsset(_asset);
     }
-    
+
     // @notice configure and resolve asset name to address and price feed
     // @param _symbol asset name
     // @param _token asset address,
@@ -139,9 +139,7 @@ contract XPNMain is IXPN, XPNCore, AccessControlEnumerable {
         string memory _symbol,
         address _token,
         address _feed
-    ) external 
-      onlyRole(ASSET_WHITELIST_ROLE)
-    {
+    ) external onlyRole(ASSET_WHITELIST_ROLE) {
         _addAssetConfig(_symbol, _token, _feed);
     }
 
@@ -163,6 +161,37 @@ contract XPNMain is IXPN, XPNCore, AccessControlEnumerable {
         onlyRole(DEFAULT_ADMIN_ROLE)
     {
         _removeTrackedAsset(_asset);
+    }
+
+    /////////////////////////
+    //  vault migration functions
+    /////////////////////////
+
+    // @notice create the migration
+    // @param _newState the new global state of the contract to migrate to
+    // @dev deploys a new enzyme comptroller proxy
+    // @dev only callable by admin role
+    function createMigration(State memory _newState)
+        external
+        override
+        onlyRole(DEFAULT_ADMIN_ROLE)
+    {
+        _createMigration(_newState);
+    }
+
+    // @notice signal migration
+    // @dev start the time lock for enzyme vault migration, users can withdraw but no longer allowed to deposit
+    // @dev only callable by admin role
+    function signalMigration() external override onlyRole(DEFAULT_ADMIN_ROLE) {
+        _signalMigration();
+    }
+
+    // @notice execute the migration
+    // @dev requires the current time > enzyme dispatcher's timelock
+    // @dev change the global state of the contract, users are allowed to deposit again
+    // @dev only callable by admin role
+    function executeMigration() external override onlyRole(DEFAULT_ADMIN_ROLE) {
+        _executeMigration();
     }
 
     /////////////////////////

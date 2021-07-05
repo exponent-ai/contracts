@@ -83,13 +83,40 @@ contract IntXPNCoreSpy is XPNCore {
         _depositHook(_amount);
     }
 
+    function deposit(uint256 _amount) external returns (uint256) {
+        _deposit(_amount);
+    }
+
+    function withdraw(uint256 _amount)
+        external
+        returns (address[] memory payoutAssets, uint256[] memory payoutAmounts)
+    {
+        return _withdraw(_amount);
+    }
+
     function submitTrade(bytes calldata _trade, address _venue) external {
         _submitTrade(_trade, _venue);
+    }
+
+    function createMigration(State memory _newState) external {
+        _createMigration(_newState);
+    }
+
+    function signalMigration() external {
+        _signalMigration();
+    }
+
+    function executeMigration() external {
+        _executeMigration();
     }
 
     // state getters
     function getSharesAddress() external view returns (address) {
         return _getSharesAddress();
+    }
+
+    function getVaultAddress() external view returns (address) {
+        return _getVaultAddress();
     }
 
     function getWhitelistPolicyAddress() external view returns (address) {
