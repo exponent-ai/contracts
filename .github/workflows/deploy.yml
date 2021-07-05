@@ -68,7 +68,8 @@ jobs:
       - name: Zip artifacts
         run: |
           zip -r abi ./data/abi
-      - name: upload artifacts
+          zip -r artifacts ./artifacts
+      - name: upload abi.zip
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ github.token }}
@@ -76,4 +77,13 @@ jobs:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ./abi.zip
           asset_name: abi.zip
+          asset_content_type: application/zip
+      - name: upload artifacts.zip
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./artifacts.zip
+          asset_name: artifacts.zip
           asset_content_type: application/zip
