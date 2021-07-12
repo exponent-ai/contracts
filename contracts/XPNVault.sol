@@ -1,7 +1,7 @@
 // Copyright (C) 2021 Exponent
 
 // This file is part of Exponent.
-    
+
 // Exponent is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
@@ -55,11 +55,7 @@ abstract contract XPNVault is ReentrancyGuard {
     // @param _amount amount to be deposited
     // @dev denominated asset must be approved first
     // @return amount of LP tokens minted
-    function _deposit(uint256 _amount)
-        internal
-        nonReentrant
-        returns (uint256 minted)
-    {
+    function _deposit(uint256 _amount) internal returns (uint256 minted) {
         require(_amount > 0, "Vault: _amount cant be zero");
         uint256 before = denomAsset.balanceOf(_getSharesAddress());
         require(

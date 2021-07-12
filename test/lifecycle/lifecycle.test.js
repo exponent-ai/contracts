@@ -50,12 +50,18 @@ describe("XPN life cycle", function () {
     */
     before("set up test", async function () {
       await setSnapshot();
+
       [
         this.deployer,
         this.admin,
-        this.singalProvider,
         this.settler,
+        this.venueWhitelister,
+        this.assetWhitelister,
+        this.manager,
+        this.user1,
+        this.user2,
         this.depositor,
+        this.singalProvider,
       ] = await ethers.getSigners();
 
       contracts = await initMainnetEnv();
@@ -145,39 +151,57 @@ describe("XPN life cycle", function () {
     it("set asset whitelist", async function () {
       // chainlink ETH/BTC: 0xdeb288F737066589598e9214E782fa5A8eD689e8
       // USDC/ETH: 	0x986b5E1e1755e3C2440e960477f25201B0a8bbD4
+      this.assetWhitelisterRole = ethers.utils.keccak256(
+        ethers.utils.toUtf8Bytes("ASSET_WHITELIST_ROLE")
+      );
+      await this.main
+        .connect(this.admin)
+        .grantRole(this.assetWhitelisterRole, this.assetWhitelister.address);
       const btcAddress = "0x2260fac5e5542a773aa44fbcfedf7c193bc2c599";
       const btcETHFeed = "0xdeb288F737066589598e9214E782fa5A8eD689e8";
       await this.main
-        .connect(this.admin)
-        .addAssetConfig("BTC", btcAddress, btcETHFeed);
+        .connect(this.assetWhitelister)
+        .addAssetFeedConfig("BTC", btcAddress, btcETHFeed);
 
-      await this.main.connect(this.admin).whitelistAsset(btcAddress);
+      await this.main.connect(this.assetWhitelister).whitelistAsset(btcAddress);
       const usdcAddress = "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48";
       const usdcETHFeed = "0x986b5E1e1755e3C2440e960477f25201B0a8bbD4";
       await this.main
-        .connect(this.admin)
-        .addAssetConfig("USDC", usdcAddress, usdcETHFeed);
-      await this.main.connect(this.admin).whitelistAsset(usdcAddress);
+        .connect(this.assetWhitelister)
+        .addAssetFeedConfig("USDC", usdcAddress, usdcETHFeed);
+      await this.main
+        .connect(this.assetWhitelister)
+        .whitelistAsset(usdcAddress);
 
       const wethAddress = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2";
       const wethFeed = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2";
       await this.main
-        .connect(this.admin)
-        .addAssetConfig("WETH", wethAddress, randomAddress());
-      await this.main.connect(this.admin).whitelistAsset(wethAddress);
+        .connect(this.assetWhitelister)
+        .addAssetFeedConfig("WETH", wethAddress, randomAddress());
+      await this.main
+        .connect(this.assetWhitelister)
+        .whitelistAsset(wethAddress);
     });
 
     it("set signal", async function () {
-      await this.main.setSignal(this.simpleSignal.address, "testsignal");
+      await this.main
+        .connect(this.admin)
+        .swapSignal(this.simpleSignal.address, "testsignal");
     });
 
     it("init fund", async function () {
-      await this.main.initializeFundConfig();
+      await this.main.connect(this.admin).initializeFundConfig();
     });
 
     it("whitelistVenue", async function () {
+      this.venueWhitelisterRole = ethers.utils.keccak256(
+        ethers.utils.toUtf8Bytes("VENUE_WHITELIST_ROLE")
+      );
       await this.main
         .connect(this.admin)
+        .grantRole(this.venueWhitelisterRole, this.venueWhitelister.address);
+      await this.main
+        .connect(this.venueWhitelister)
         .whitelistVenue(process.env.KYBER_ADDRESS);
     });
 

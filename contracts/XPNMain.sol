@@ -405,6 +405,7 @@ contract XPNMain is IXPN, XPNCore, AccessControlEnumerable {
     // @notice set expected trade efficiency
     // @dev note 1e18 = 100% default is 98e16 (98%)
     // @dev only callable by admin role
+
     function setExpectedEfficientcy(int256 _expectedEfficientcy)
         external
         onlyRole(DEFAULT_ADMIN_ROLE)
