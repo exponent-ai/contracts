@@ -49,10 +49,6 @@ contract IntXPNCoreSpy is XPNCore {
         _initializeFundConfig();
     }
 
-    function swapSettler(address _newSettler) external {
-        _swapSettler(_newSettler);
-    }
-
     function removeTrackedAsset(address _asset) external {
         _removeTrackedAsset(_asset);
     }
@@ -87,8 +83,31 @@ contract IntXPNCoreSpy is XPNCore {
         _depositHook(_amount);
     }
 
+    function deposit(uint256 _amount) external returns (uint256) {
+        _deposit(_amount);
+    }
+
+    function withdraw(uint256 _amount)
+        external
+        returns (address[] memory payoutAssets, uint256[] memory payoutAmounts)
+    {
+        return _withdraw(_amount);
+    }
+
     function submitTrade(bytes calldata _trade, address _venue) external {
         _submitTrade(_trade, _venue);
+    }
+
+    function createMigration(State memory _newState) external {
+        _createMigration(_newState);
+    }
+
+    function signalMigration() external {
+        _signalMigration();
+    }
+
+    function executeMigration() external {
+        _executeMigration();
     }
 
     // state getters
@@ -96,8 +115,8 @@ contract IntXPNCoreSpy is XPNCore {
         return _getSharesAddress();
     }
 
-    function getAdminAddress() external view returns (address) {
-        return _getAdminAddress();
+    function getVaultAddress() external view returns (address) {
+        return _getVaultAddress();
     }
 
     function getWhitelistPolicyAddress() external view returns (address) {
@@ -106,10 +125,6 @@ contract IntXPNCoreSpy is XPNCore {
 
     function getPolicyAddress() external view returns (address) {
         return _getPolicyAddress();
-    }
-
-    function getSettlerAddress() external view returns (address) {
-        return _getSettlerAddress();
     }
 
     function getTrackedAssetAddress() external view returns (address) {

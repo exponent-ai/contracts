@@ -37,6 +37,18 @@ const contracts = [
     name: "ENZYME_INVESTOR_WHITELIST",
     address: process.env.ENZYME_INVESTOR_WHITELIST,
   },
+  {
+    name: "ENZYME_AAVE_ADAPTER",
+    address: process.env.ENZYME_AAVE_ADAPTER,
+  },
+  {
+    name: "ENZYME_DISPATCHER",
+    address: process.env.ENZYME_DISPATCHER,
+  },
+  {
+    name: "AUSDC",
+    address: process.env.AUSDC_ADDRESS,
+  },
 ];
 
 async function initMainnetEnv() {
@@ -110,4 +122,27 @@ async function setSnapshot() {
   }
 }
 
-module.exports = { initMainnetEnv, seedBalance, cleanUp, setSnapshot };
+async function getDeployedContractBytes(
+  txHash,
+  interfaceName,
+  deployer,
+  contractModifier = null
+) {
+  const tx = await ethers.provider.getTransaction(txHash); // transaction used to deploythe contract
+  const artifacts = await hre.artifacts.readArtifact(interfaceName);
+  const contractFactory = new ethers.ContractFactory(
+    artifacts.abi,
+    contractModifier == null ? tx.data : contractModifier(tx.data)
+  );
+
+  // deploy an exact copy of the contract fetched
+  return await contractFactory.connect(deployer).deploy();
+}
+
+module.exports = {
+  initMainnetEnv,
+  seedBalance,
+  cleanUp,
+  setSnapshot,
+  getDeployedContractBytes,
+};

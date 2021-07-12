@@ -1,4 +1,20 @@
-//SPDX-License-Identifier: Unlicense
+// Copyright (C) 2021 Exponent
+
+// This file is part of Exponent.
+    
+// Exponent is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+
+// Exponent is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with Exponent.  If not, see <http://www.gnu.org/licenses/>.
+
 pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -11,7 +27,7 @@ import "hardhat/console.sol";
 // @title core application logic for vault
 // @notice to be inherited by the implementation contract for added functionality
 // @dev deposit/ withdraw hooks and calculation must be overridden
-contract XPNVault is ReentrancyGuard {
+abstract contract XPNVault is ReentrancyGuard {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
@@ -71,7 +87,6 @@ contract XPNVault is ReentrancyGuard {
     // @return assets and amount of to be withdrawn
     function _withdraw(uint256 _amount)
         internal
-        nonReentrant
         returns (address[] memory payoutAssets, uint256[] memory payoutAmounts)
     {
         require(_amount > 0, "Vault: _amount cant be zero");

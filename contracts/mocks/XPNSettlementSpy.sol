@@ -6,7 +6,9 @@ import "../XPNSettlement.sol";
 contract XPNSettlementSpy is XPNSettlement {
     bool public result;
     bool public isWhitelist;
-    uint256 public count;
+    uint256 public tradecount;
+    uint256 public lendingcount;
+    uint256 public redemptioncount;
 
     function setReturnMsg(bool _result) public {
         result = _result;
@@ -21,7 +23,25 @@ contract XPNSettlementSpy is XPNSettlement {
         override
         returns (bool)
     {
-        count++;
+        tradecount++;
+        return result;
+    }
+
+    function _submitLending(bytes calldata, address)
+        internal
+        override
+        returns (bool)
+    {
+        lendingcount++;
+        return result;
+    }
+
+    function _submitRedemption(bytes calldata, address)
+        internal
+        override
+        returns (bool)
+    {
+        redemptioncount++;
         return result;
     }
 
@@ -30,6 +50,14 @@ contract XPNSettlementSpy is XPNSettlement {
         address[] memory _venues
     ) external returns (bool) {
         return _submitTradeOrders(_trades, _venues);
+    }
+
+    function submitPoolOrders(
+        bytes[] calldata _orders,
+        Pool[] calldata _txTypes,
+        address[] memory _venues
+    ) external returns (bool) {
+        return _submitPoolOrders(_orders, _txTypes, _venues);
     }
 
     function _venueIsWhitelisted(address)

@@ -1,4 +1,20 @@
-//SPDX-License-Identifier: Unlicense
+// Copyright (C) 2021 Exponent
+
+// This file is part of Exponent.
+
+// Exponent is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+
+// Exponent is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with Exponent.  If not, see <http://www.gnu.org/licenses/>.
+
 pragma solidity ^0.8.0;
 pragma experimental ABIEncoderV2;
 
@@ -21,8 +37,8 @@ contract XPNCore is XPNVault, XPNSettlement, XPNPortfolio {
 
     //TODO make external contract explicit
     struct State {
-        address admin; // xpn admin account
-        address settler; // EOA responsible for calling settlement
+        address defaultAdmin; // xpn admin account, only used on deployment
+        address defaultSettler; // EOA responsible for calling settlement, only used on deployment
         address signal; // contract address for signal to pull from
         string denomAssetSymbol; // symbol of the denominated asset
         address EZdeployer; // Enzyme FundDeployer contract
@@ -41,28 +57,44 @@ contract XPNCore is XPNVault, XPNSettlement, XPNPortfolio {
     ISignal private signalPool;
     string private signalName;
     int256 expectedEfficientcy;
+    // @notice the contract state after successful migration
+    State private postMigrationState;
 
     // @notice a hardcoded selector for all Enzyme DEX trades
     bytes4 constant TAKE_ORDER_SELECTOR =
         bytes4(keccak256("takeOrder(address,bytes,bytes)"));
+    // @notice a hardcoded selector for all Enzyme lending
+    bytes4 constant LEND_ORDER_SELECTOR =
+        bytes4(keccak256("lend(address,bytes,bytes)"));
+    // @notice a hardcoded selector for all Enzyme redemption
+    bytes4 constant REDEEM_ORDER_SELECTOR =
+        bytes4(keccak256("redeem(address,bytes,bytes)"));
 
     bool private configInitialized;
+    bool private restricted;
 
+    mapping(address => bool) private walletWhitelist;
     mapping(address => bool) private venueWhitelist;
     mapping(address => bool) private assetWhitelist;
     mapping(string => address) private symbolToAsset;
     mapping(address => address) private assetToPriceFeed;
 
+    event SetRestricted(bool toggle);
+    event WalletWhitelisted(address wallet);
+    event WalletDeWhitelisted(address wallet);
     event VenueWhitelisted(address venue);
-    event AssetWhitelisted(address venue);
     event VenueDeWhitelisted(address venue);
-    event AssetDeWhitelisted(address venue);
+    event AssetWhitelisted(address asset);
+    event AssetDeWhitelisted(address asset);
     event TrackedAssetAdded(address asset);
     event TrackedAssetRemoved(address asset);
     event AssetConfigAdded(string symbol, address asset, address feed);
     event AssetConfigRemoved(string symbol);
     event NewSignal(address signal);
     event NewExpectedEfficientcy(int256 efficientcy);
+    event MigrationCreated(State postMigrationState);
+    event MigrationSignaled();
+    event MigrationExecuted();
 
     constructor(
         State memory _constructorConfig,
@@ -96,7 +128,7 @@ contract XPNCore is XPNVault, XPNSettlement, XPNPortfolio {
     function _initializeFundConfig() internal {
         require(!configInitialized, "XPNCore: config already initialized");
         // only if signal supports whitelisted assets
-        _verifySignal(globalState.signal, _getSignalName()); //TODO should pass name from globalState
+        _verifySignal(globalState.signal, _getSignalName());
         // only this contract can deposit
         address[] memory buyersToAdd = new address[](1);
         address[] memory buyersToRemove = new address[](0);
@@ -108,6 +140,11 @@ contract XPNCore is XPNVault, XPNSettlement, XPNPortfolio {
             policySettings
         );
         configInitialized = true;
+    }
+
+    function _setRestricted(bool _toggle) internal {
+        restricted = _toggle;
+        emit SetRestricted(_toggle);
     }
 
     // @notice configure token address and price feed to symbol
@@ -130,11 +167,6 @@ contract XPNCore is XPNVault, XPNSettlement, XPNPortfolio {
         emit AssetConfigRemoved(_symbol);
     }
 
-    // @notice identify who can create settlement transaction
-    function _swapSettler(address _newSettler) internal {
-        globalState.settler = _newSettler;
-    }
-
     // @notice swap out to another signal contract
     // @dev will ensure that the signal supports the correct asset symbols, but makes no correctness assumption
     // TODO should take signal and name inside globalState
@@ -145,14 +177,17 @@ contract XPNCore is XPNVault, XPNSettlement, XPNPortfolio {
         emit NewSignal(_signal);
     }
 
+    function _whitelistWallet(address _wallet) internal {
+        walletWhitelist[_wallet] = true;
+    }
+
+    function _deWhitelistWallet(address _wallet) internal {
+        walletWhitelist[_wallet] = false;
+    }
+
     function _whitelistVenue(address _venue) internal {
         venueWhitelist[_venue] = true;
         emit VenueWhitelisted(_venue);
-    }
-
-    function _whitelistAsset(address _asset) internal {
-        assetWhitelist[_asset] = true;
-        emit AssetWhitelisted(_asset);
     }
 
     function _deWhitelistVenue(address _venue) internal {
@@ -160,17 +195,29 @@ contract XPNCore is XPNVault, XPNSettlement, XPNPortfolio {
         emit VenueDeWhitelisted(_venue);
     }
 
+    function _whitelistAsset(address _asset) internal {
+        assetWhitelist[_asset] = true;
+        emit AssetWhitelisted(_asset);
+    }
+
     function _deWhitelistAsset(address _asset) internal {
         assetWhitelist[_asset] = false;
         emit AssetDeWhitelisted(_asset);
     }
 
-    function _settle(bytes[] calldata _trades, address[] memory _venues)
+    function _settleTrade(bytes[] calldata _trades, address[] memory _venues)
         internal
-        ensureTrade
         returns (bool)
     {
         return _submitTradeOrders(_trades, _venues);
+    }
+
+    function _settlePool(
+        bytes[] calldata _orders,
+        Pool[] calldata _txTypes,
+        address[] memory _venues
+    ) internal returns (bool) {
+        return _submitPoolOrders(_orders, _txTypes, _venues);
     }
 
     // @notice verify that the assets in the provided signal contract is supported
@@ -313,6 +360,36 @@ contract XPNCore is XPNVault, XPNSettlement, XPNPortfolio {
         return true;
     }
 
+    function _submitLending(bytes calldata _lending, address _venue)
+        internal
+        override
+        returns (bool)
+    {
+        bytes memory callargs =
+            abi.encode(_venue, LEND_ORDER_SELECTOR, _lending);
+        IComptroller(globalState.EZcomptroller).callOnExtension(
+            globalState.EZintegrationManager,
+            0,
+            callargs
+        );
+        return true;
+    }
+
+    function _submitRedemption(bytes calldata _redemption, address _venue)
+        internal
+        override
+        returns (bool)
+    {
+        bytes memory callargs =
+            abi.encode(_venue, REDEEM_ORDER_SELECTOR, _redemption);
+        IComptroller(globalState.EZcomptroller).callOnExtension(
+            globalState.EZintegrationManager,
+            0,
+            callargs
+        );
+        return true;
+    }
+
     function _redeemFeesHook(address _feeManager, address[] memory _fees)
         internal
         override
@@ -329,22 +406,44 @@ contract XPNCore is XPNVault, XPNSettlement, XPNPortfolio {
         );
     }
 
+    // enzyme vault migration
+    function _createMigration(State memory _newState) internal {
+        postMigrationState = _newState;
+        address newComptrollerProxy =
+            IFundDeployer(postMigrationState.EZdeployer)
+                .createMigratedFundConfig(address(denomAsset), 0, "", "");
+        postMigrationState.EZcomptroller = newComptrollerProxy;
+        postMigrationState.EZshares = globalState.EZshares; //ensure that the shares address never changes
+        emit MigrationCreated(_newState);
+    }
+
+    function _signalMigration() internal {
+        IFundDeployer(postMigrationState.EZdeployer).signalMigration(
+            globalState.EZshares,
+            postMigrationState.EZcomptroller
+        );
+        // set configInitialized to false to prevent further deposit
+        configInitialized = false;
+        emit MigrationSignaled();
+    }
+
+    function _executeMigration() internal {
+        IFundDeployer(postMigrationState.EZdeployer).executeMigration(
+            globalState.EZshares
+        );
+        globalState = postMigrationState;
+        _initializeFundConfig();
+        emit MigrationExecuted();
+    }
+
     // state getters
 
     function _getSharesAddress() internal view override returns (address) {
         return globalState.EZshares;
     }
 
-    function _getAdminAddress() internal view override returns (address) {
-        return globalState.admin;
-    }
-
     function _getPolicyAddress() internal view returns (address) {
         return globalState.EZpolicy;
-    }
-
-    function _getSettlerAddress() internal view returns (address) {
-        return globalState.settler;
     }
 
     function _getTrackedAssetAddress() internal view returns (address) {
@@ -430,5 +529,13 @@ contract XPNCore is XPNVault, XPNSettlement, XPNPortfolio {
     function _setExpectedEfficientcy(int256 _expectedEfficientcy) internal {
         expectedEfficientcy = _expectedEfficientcy;
         emit NewExpectedEfficientcy(_expectedEfficientcy);
+    }
+
+    function _isWalletWhitelisted(address wallet) internal view returns (bool) {
+        return walletWhitelist[wallet];
+    }
+
+    function _isRestricted() internal view returns (bool) {
+        return restricted;
     }
 }

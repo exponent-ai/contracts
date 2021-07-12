@@ -1,4 +1,9 @@
-// Copyright (C) 2021 Exponent
+#!/bin/bash
+for file in $(ls ./contracts/*.sol ./test/*.test.js)
+    do
+    author="Exponent"
+    year="2021"
+    licenseBody="// Copyright (C) ${year} ${author}
 
 // This file is part of Exponent.
     
@@ -14,15 +19,16 @@
 
 // You should have received a copy of the GNU General Public License
 // along with Exponent.  If not, see <http://www.gnu.org/licenses/>.
+"
 
-pragma solidity ^0.8.0;
-
-contract Signal {
-    // TODO: to be replaced with application logic that wraps signal module
-    function _verifyBalanceAfterSettled(uint256 _signalNonce)
-        internal
-        returns (bool)
-    {
-        return true;
-    }
-}
+    grep -v "SPDX-License-Identifier: Unlicense" $file > temp && mv temp $file
+   
+    #add header
+    if ! grep -q "// Copyright (C) " "$file"; then
+        echo "$licenseBody" | cat - ${file} >temp && mv temp ${file}
+    else
+        sed -i.bak '1,17d' $file 
+        rm -rf "$file.bak"
+        echo "$licenseBody" | cat - ${file} >temp && mv temp ${file}
+    fi
+done

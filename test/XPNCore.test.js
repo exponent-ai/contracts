@@ -1,3 +1,20 @@
+// Copyright (C) 2021 Exponent
+
+// This file is part of Exponent.
+
+// Exponent is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+
+// Exponent is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with Exponent.  If not, see <http://www.gnu.org/licenses/>.
+
 require("dotenv").config();
 const { randomAddress } = require("./utils/address.js");
 const { waffle } = require("hardhat");
@@ -161,15 +178,6 @@ describe("XPNCore", function () {
     });
   });
 
-  describe("swapSettler", async function () {
-    it("changes settler successfully", async function () {
-      await this.core.swapSettler(this.settler2.address);
-      expect(await this.core.getSettlerAddress()).to.be.equal(
-        this.settler2.address
-      );
-    });
-  });
-
   describe("whitelistVenue", async function () {
     it("emits event when successfully whitelisted", async function () {
       await expect(this.core.whitelistVenue(this.mockAddress))
@@ -208,15 +216,11 @@ describe("XPNCore", function () {
 
   describe("stateGetters", async function () {
     it("can fetch the correct internal addresses", async function () {
-      expect(await this.core.getAdminAddress()).to.be.equal(this.admin.address);
       expect(await this.core.getPolicyAddress()).to.be.equal(
         this.policymanager.address
       );
       expect(await this.core.getWhitelistPolicyAddress()).to.be.equal(
         this.whitelistPolicy
-      );
-      expect(await this.core.getSettlerAddress()).to.be.equal(
-        this.settler.address
       );
       expect(await this.core.getTrackedAssetAddress()).to.be.equal(
         this.trackedAssetAdapterAddress

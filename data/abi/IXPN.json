@@ -2,48 +2,80 @@
   {
     "inputs": [
       {
-        "internalType": "bool",
+        "components": [
+          {
+            "internalType": "address",
+            "name": "defaultAdmin",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "defaultSettler",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "signal",
+            "type": "address"
+          },
+          {
+            "internalType": "string",
+            "name": "denomAssetSymbol",
+            "type": "string"
+          },
+          {
+            "internalType": "address",
+            "name": "EZdeployer",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "EZintegrationManager",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "EZtrackedAssetAdapter",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "EZpolicy",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "EZwhitelistPolicy",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "EZcomptroller",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "EZshares",
+            "type": "address"
+          },
+          {
+            "internalType": "bytes",
+            "name": "EZfeeConfig",
+            "type": "bytes"
+          },
+          {
+            "internalType": "string",
+            "name": "name",
+            "type": "string"
+          }
+        ],
+        "internalType": "struct XPNCore.State",
         "name": "",
-        "type": "bool"
+        "type": "tuple"
       }
     ],
-    "name": "calcGav",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      },
-      {
-        "internalType": "bool",
-        "name": "",
-        "type": "bool"
-      }
-    ],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "bool",
-        "name": "",
-        "type": "bool"
-      }
-    ],
-    "name": "calcGrossLPValue",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      },
-      {
-        "internalType": "bool",
-        "name": "",
-        "type": "bool"
-      }
-    ],
+    "name": "createMigration",
+    "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
   },
@@ -68,15 +100,9 @@
   },
   {
     "inputs": [],
-    "name": "getAdminAddress",
-    "outputs": [
-      {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
+    "name": "executeMigration",
+    "outputs": [],
+    "stateMutability": "nonpayable",
     "type": "function"
   },
   {
@@ -106,8 +132,64 @@
     "type": "function"
   },
   {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "role",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "uint256",
+        "name": "index",
+        "type": "uint256"
+      }
+    ],
+    "name": "getRoleMember",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "role",
+        "type": "bytes32"
+      }
+    ],
+    "name": "getRoleMemberCount",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
     "inputs": [],
-    "name": "getStrategistAddress",
+    "name": "getSignalName",
+    "outputs": [
+      {
+        "internalType": "string",
+        "name": "",
+        "type": "string"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "getSignalPool",
     "outputs": [
       {
         "internalType": "address",
@@ -120,15 +202,38 @@
   },
   {
     "inputs": [],
-    "name": "getTrackedAssets",
-    "outputs": [
+    "name": "signalMigration",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes[]",
+        "name": "_orders",
+        "type": "bytes[]"
+      },
+      {
+        "internalType": "enum XPNSettlement.Pool[]",
+        "name": "_txTypes",
+        "type": "uint8[]"
+      },
       {
         "internalType": "address[]",
-        "name": "",
+        "name": "_venues",
         "type": "address[]"
       }
     ],
-    "stateMutability": "view",
+    "name": "submitPoolOrders",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "nonpayable",
     "type": "function"
   },
   {
@@ -145,6 +250,59 @@
       }
     ],
     "name": "submitTradeOrders",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes[]",
+        "name": "_orders",
+        "type": "bytes[]"
+      },
+      {
+        "internalType": "enum XPNSettlement.Pool[]",
+        "name": "_txTypes",
+        "type": "uint8[]"
+      },
+      {
+        "internalType": "address[]",
+        "name": "_venues",
+        "type": "address[]"
+      }
+    ],
+    "name": "submitTrustedPoolOrders",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes[]",
+        "name": "_trades",
+        "type": "bytes[]"
+      },
+      {
+        "internalType": "address[]",
+        "name": "_venues",
+        "type": "address[]"
+      }
+    ],
+    "name": "submitTrustedTradeOrders",
     "outputs": [
       {
         "internalType": "bool",
