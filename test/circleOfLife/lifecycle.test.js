@@ -190,6 +190,10 @@ describe("XPN life cycle", function () {
     });
 
     it("trade settlement", async function () {
+      // TODO: remove this.
+      // for debug
+      // this.main.setExpectedEfficientcy(String(95e16)); // down to 95%
+
       // TODO: make change
       this.timeout(100000);
       this.tradeAmount = "1804000000";
@@ -208,10 +212,7 @@ describe("XPN life cycle", function () {
       const kyberVenue = process.env.KYBER_ADDRESS;
       await this.main
         .connect(this.settler)
-        .submitTradeOrders(
-          Array.of(kyberArgs, kyberArgs),
-          Array.of(kyberVenue, kyberVenue)
-        );
+        .submitTradeOrders(Array.of(kyberArgs), Array.of(kyberVenue));
       const postwethbal = await contracts.WETH.balanceOf(
         this.main.getSharesAddress()
       );

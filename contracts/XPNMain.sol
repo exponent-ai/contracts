@@ -155,4 +155,40 @@ contract XPNMain is IXPN, XPNCore {
     ) external {
         _addAssetConfig(_symbol, _token, _feed);
     }
+
+    // only expose diff related info.
+
+    function signalPortfolioDiffPercent() external view returns (int256) {
+        return _signalPortfolioDiffPercent();
+    }
+
+    function signalPortfolioDiffToken()
+        external
+        view
+        returns (int256[] memory)
+    {
+        return _signalPortfolioDiffToken();
+    }
+
+    function signalPortfolioDiffAllocation()
+        external
+        view
+        returns (int256[] memory)
+    {
+        return _signalPortfolioDiffAllocation();
+    }
+
+    function signalPortfolioDiffValue()
+        external
+        view
+        returns (int256[] memory)
+    {
+        return _signalPortfolioDiffValue();
+    }
+
+    // @notice set expected trade efficiency 
+    // @dev note 1e18 = 100% default is 98e16 (98%)
+    function setExpectedEfficientcy(int256 _expectedEfficientcy) external {
+        _setExpectedEfficientcy(_expectedEfficientcy);
+    }
 }

@@ -17,6 +17,7 @@ import "./interface/enzyme/IPolicyManager.sol";
 // @dev overrides all functional _hooks and lazy-hydrate state to downstream functional contracts,
 contract XPNCore is XPNVault, XPNSettlement, XPNPortfolio {
     using SafeERC20 for IERC20;
+    int256 constant chainlinkONE = 1e8;
 
     //TODO make external contract explicit
     struct State {
@@ -37,6 +38,9 @@ contract XPNCore is XPNVault, XPNSettlement, XPNPortfolio {
 
     // @notice application state
     State private globalState;
+    ISignal private signalPool;
+    string private signalName;
+    int256 expectedEfficientcy;
 
     // @notice a hardcoded selector for all Enzyme DEX trades
     bytes4 constant TAKE_ORDER_SELECTOR =
@@ -58,6 +62,7 @@ contract XPNCore is XPNVault, XPNSettlement, XPNPortfolio {
     event AssetConfigAdded(string symbol, address asset, address feed);
     event AssetConfigRemoved(string symbol);
     event NewSignal(address signal);
+    event NewExpectedEfficientcy(int256 efficientcy);
 
     constructor(
         State memory _constructorConfig,
@@ -82,6 +87,7 @@ contract XPNCore is XPNVault, XPNSettlement, XPNPortfolio {
             );
         globalState.EZcomptroller = comptrollerAddress;
         globalState.EZshares = sharesAddress;
+        expectedEfficientcy = 98e16;
     }
 
     // @notice make self a sole depositor to the Enzyme Vault
@@ -226,6 +232,8 @@ contract XPNCore is XPNVault, XPNSettlement, XPNPortfolio {
     {
         (, int256 price, , , ) =
             AggregatorV3Interface(assetToPriceFeed[_asset]).latestRoundData();
+        // console.logInt(price);
+        // console.logInt((price * ONE) / chainlinkONE);
         return price;
     }
 
@@ -380,5 +388,47 @@ contract XPNCore is XPNVault, XPNSettlement, XPNPortfolio {
 
     function _isAssetWhitelisted(address _asset) internal view returns (bool) {
         return assetWhitelist[_asset];
+    }
+
+    // @notice set target signal
+    // @param signalPoolAddress address of signal contract
+    // @param signalName name of the target signal in the signal contract
+    // @dev this function assume that caller already verify the compatability off chain.
+    function _setSignal(address signalPoolAddress, string memory _signalName)
+        internal
+    {
+        signalPool = ISignal(signalPoolAddress);
+        signalName = _signalName;
+    }
+
+    // @notice Get signal name
+    // @return string name of active signal
+    function _getSignalName() internal view returns (string memory) {
+        return signalName;
+    }
+
+    // @notice Get signal pool address
+    // @return address signal contract address
+    function _getSignalPool() internal view returns (address) {
+        return address(signalPool);
+    }
+
+    function _getSignal() internal view override returns (int256[] memory) {
+        return signalPool.getSignal(signalName);
+    }
+
+    function _getSignalMeta() internal view override returns (string[] memory) {
+        return signalPool.getSignalMeta(signalName);
+    }
+
+    function _getExpectedEfficientcy() internal view override returns (int256) {
+        return expectedEfficientcy;
+    }
+
+    // @notice set expected trade efficiency
+    // @dev note 1e18 = 100% default is 98e16 (98%)
+    function _setExpectedEfficientcy(int256 _expectedEfficientcy) internal {
+        expectedEfficientcy = _expectedEfficientcy;
+        emit NewExpectedEfficientcy(_expectedEfficientcy);
     }
 }
