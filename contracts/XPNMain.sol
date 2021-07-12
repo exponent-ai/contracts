@@ -1,7 +1,7 @@
 // Copyright (C) 2021 Exponent
 
 // This file is part of Exponent.
-    
+
 // Exponent is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
@@ -402,9 +402,13 @@ contract XPNMain is IXPN, XPNCore, AccessControlEnumerable {
         return _signalPortfolioDiffValue();
     }
 
-    // @notice set expected trade efficiency 
+    // @notice set expected trade efficiency
     // @dev note 1e18 = 100% default is 98e16 (98%)
-    function setExpectedEfficientcy(int256 _expectedEfficientcy) external {
+    // @dev only callable by admin role
+    function setExpectedEfficientcy(int256 _expectedEfficientcy)
+        external
+        onlyRole(DEFAULT_ADMIN_ROLE)
+    {
         _setExpectedEfficientcy(_expectedEfficientcy);
     }
 }

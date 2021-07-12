@@ -474,9 +474,7 @@ describe("XPNPortfolio", function () {
         ]);
       });
       it("revert on viewPortfolioToken", async function () {
-
         await expect(this.signalFund.viewPortfolioToken()).to.be.reverted;
-
       });
 
       it("revert on viewPortfolioMixValue", async function () {

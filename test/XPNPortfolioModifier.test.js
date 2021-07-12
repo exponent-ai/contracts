@@ -21,9 +21,9 @@ const { padZeros } = require("./utils/bignum");
 describe("XPNPortfolioModifier", function () {
   describe("ensureTrade", async function () {
     beforeEach(async function () {
-
-
-      const Portfolio = await ethers.getContractFactory("XPNPortfolioModifierSpy")
+      const Portfolio = await ethers.getContractFactory(
+        "XPNPortfolioModifierSpy"
+      );
       this.portfolio = await Portfolio.deploy(); // submit transaction....
       await this.portfolio.deployed(); // check that contract deployed
       this.startingPortValue = padZeros("1000", 18); // 1000
