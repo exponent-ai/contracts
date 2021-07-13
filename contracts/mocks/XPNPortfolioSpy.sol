@@ -9,46 +9,79 @@ contract XPNPortfolioSpy is XPNPortfolio {
     // TODO: integrate with real fund and dex
     int256[] public fundsAsset;
     int256[] public tokenPrice;
+    mapping(string => address) symbolTokenMap;
+    address vaultAddress;
+    ISignal private signalPool;
+    string private signalName;
 
     constructor() XPNPortfolio() {
         fundsAsset = [int256(0), int256(0), int256(0)];
         tokenPrice = [int256(56e18), int256(1600e18), int256(1e18)];
     }
 
-    function mockSetSignal(
+    function callSetSignal(
         address _signalPoolAddress,
         string memory _signalName
     ) public {
         _setSignal(_signalPoolAddress, _signalName);
     }
 
-    function _viewPortfolioToken()
+    // @notice set target signal
+    // @param signalPoolAddress address of signal contract
+    // @param signalName name of the target signal in the signal contract
+    // @dev this function assume that caller already verify the compatability off chain.
+    function _setSignal(address signalPoolAddress, string memory _signalName)
+        internal
+    {
+        signalPool = ISignal(signalPoolAddress);
+        signalName = _signalName;
+    }
+
+    // @notice Get signal same
+    // @return string name of active signal
+    function _getSignalName() internal view returns (string memory) {
+        return signalName;
+    }
+
+    // @notice Get signal pool address
+    // @return address signal contract address
+    function _getSignalPool() internal view returns (address) {
+        return address(signalPool);
+    }
+
+    function _getSignal() internal view override returns (int256[] memory) {
+        return signalPool.getSignal(signalName);
+    }
+
+    function _getSignalMeta() internal view override returns (string[] memory) {
+        return signalPool.getSignalMeta(signalName);
+    }
+
+    function setVaultAddress(address _vaultAddress) public {
+        vaultAddress = _vaultAddress;
+    }
+
+    function _getExpectedEfficiency() internal view override returns (int256) {
+        return 98e16;
+    }
+
+    function _getVaultAddress() internal view override returns (address) {
+        return vaultAddress;
+    }
+
+    function setSymbolToToken(string memory _symbol, address tokenAddress)
+        public
+    {
+        symbolTokenMap[_symbol] = tokenAddress;
+    }
+
+    function _getSymbolToToken(string memory _symbol)
         internal
         view
         override
-        returns (int256[] memory)
+        returns (address)
     {
-        /*
-        return amount of each asset. (in token)
-        TODO: refactor 
-        */
-        return fundsAsset;
-    }
-
-    // TODO: remove all function below this line
-
-    function mockDeposit(uint256 assetIndex, int256 amount) external {
-        /*
-            mock deposit 
-        */
-        fundsAsset[assetIndex] += amount;
-    }
-
-    function setToken(int256[] memory _fundsAsset) external {
-        /*
-            set token
-        */
-        fundsAsset = _fundsAsset;
+        return symbolTokenMap[_symbol];
     }
 
     function _getTokensPrice()

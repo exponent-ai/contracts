@@ -25,6 +25,10 @@ library XPNSignalMath {
 
     int256 public constant ONE = 1e18;
 
+    // @notice deposit denominated asset into the contract
+    // @param _amount amount to be deposited
+    // @dev denominated asset must be approved first
+    // @return amount of LP tokens minted
     function normalize(int256[] memory x)
         internal
         pure
@@ -40,6 +44,10 @@ library XPNSignalMath {
         }
     }
 
+    // @notice element wise addition
+    // @param x array 
+    // @param y array 
+    // @return int256 array of x elementwise add by y
     function elementWiseAdd(int256[] memory x, int256[] memory y)
         internal
         pure
@@ -51,6 +59,10 @@ library XPNSignalMath {
         }
     }
 
+    // @notice element wise subtraction
+    // @param x array 
+    // @param y array 
+    // @return int256 array of x elementwise subtract by y
     function elementWiseSub(int256[] memory x, int256[] memory y)
         internal
         pure
@@ -62,6 +74,11 @@ library XPNSignalMath {
         }
     }
 
+
+    // @notice element wise multipication
+    // @param x array 
+    // @param y array 
+    // @return int256 array of x elementwise multiply by y
     function elementWiseMul(int256[] memory x, int256[] memory y)
         internal
         pure
@@ -73,6 +90,10 @@ library XPNSignalMath {
         }
     }
 
+    // @notice element wise division
+    // @param x array 
+    // @param y array 
+    // @return int256 array of x elementwise divided by y
     function elementWiseDiv(int256[] memory x, int256[] memory y)
         internal
         pure
@@ -84,6 +105,9 @@ library XPNSignalMath {
         }
     }
 
+    // @notice abs of vector 
+    // @param x int256 array input 
+    // @return int256 array abs of vector x
     function vectorAbs(int256[] memory x)
         internal
         pure
@@ -95,6 +119,10 @@ library XPNSignalMath {
         }
     }
 
+    // @notice scale vector x by a factor
+    // @param x int256 array input 
+    // @param scaleFactor int256 scale factor 
+    // @return x scaled by scaleFactor
     function vectorScale(int256[] memory x, int256 scaleFactor)
         internal
         pure
@@ -106,6 +134,9 @@ library XPNSignalMath {
         }
     }
 
+    // @notice abs
+    // @param x int256 input 
+    // @return abs x
     function abs(int256 x) internal pure returns (int256) {
         /* 
             abslute value of input
@@ -113,6 +144,9 @@ library XPNSignalMath {
         return x >= 0 ? x : -x;
     }
 
+    // @notice sum all element
+    // @param x int256 input array
+    // @return sum of elements in x
     function sum(int256[] memory x) internal pure returns (int256 output) {
         output = 0;
         for (uint256 i = 0; i < x.length; i++) {
@@ -120,6 +154,7 @@ library XPNSignalMath {
         }
     }
 
+    // @notice L1 norm of vector. 
     function l1Norm(int256[] memory x) internal pure returns (int256 output) {
         output = sum(vectorAbs(x));
     }
