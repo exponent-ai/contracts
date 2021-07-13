@@ -56,7 +56,7 @@ contract XPNCore is XPNVault, XPNSettlement, XPNPortfolio {
     State private globalState;
     ISignal private signalPool;
     string private signalName;
-    int256 expectedEfficientcy;
+    int256 expectedEfficiency;
     // @notice the contract state after successful migration
     State private postMigrationState;
 
@@ -91,7 +91,7 @@ contract XPNCore is XPNVault, XPNSettlement, XPNPortfolio {
     event AssetConfigAdded(string symbol, address asset, address feed);
     event AssetConfigRemoved(string symbol);
     event NewSignal(address signal);
-    event NewExpectedEfficientcy(int256 efficientcy);
+    event NewExpectedEfficiency(int256 efficiency);
     event MigrationCreated(State postMigrationState);
     event MigrationSignaled();
     event MigrationExecuted();
@@ -119,7 +119,7 @@ contract XPNCore is XPNVault, XPNSettlement, XPNPortfolio {
             );
         globalState.EZcomptroller = comptrollerAddress;
         globalState.EZshares = sharesAddress;
-        expectedEfficientcy = 98e16;
+        expectedEfficiency = 98e16;
     }
 
     // @notice make self a sole depositor to the Enzyme Vault
@@ -279,8 +279,6 @@ contract XPNCore is XPNVault, XPNSettlement, XPNPortfolio {
     {
         (, int256 price, , , ) =
             AggregatorV3Interface(assetToPriceFeed[_asset]).latestRoundData();
-        // console.logInt(price);
-        // console.logInt((price * ONE) / chainlinkONE);
         return price;
     }
 
@@ -520,15 +518,15 @@ contract XPNCore is XPNVault, XPNSettlement, XPNPortfolio {
         return signalPool.getSignalMeta(signalName);
     }
 
-    function _getExpectedEfficientcy() internal view override returns (int256) {
-        return expectedEfficientcy;
+    function _getExpectedEfficiency() internal view override returns (int256) {
+        return expectedEfficiency;
     }
 
     // @notice set expected trade efficiency
     // @dev note 1e18 = 100% default is 98e16 (98%)
-    function _setExpectedEfficientcy(int256 _expectedEfficientcy) internal {
-        expectedEfficientcy = _expectedEfficientcy;
-        emit NewExpectedEfficientcy(_expectedEfficientcy);
+    function _setExpectedEfficiency(int256 _expectedEfficiency) internal {
+        expectedEfficiency = _expectedEfficiency;
+        emit NewExpectedEfficiency(_expectedEfficiency);
     }
 
     function _isWalletWhitelisted(address wallet) internal view returns (bool) {

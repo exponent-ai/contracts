@@ -1,7 +1,7 @@
 // Copyright (C) 2021 Exponent
 
 // This file is part of Exponent.
-    
+
 // Exponent is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
@@ -23,7 +23,6 @@ import "./interface/ISignal.sol";
 import "./XPNSignalMath.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
-
 // @notice portfolio module.
 abstract contract XPNPortfolio {
     using XPNSignalMath for int256[];
@@ -31,7 +30,7 @@ abstract contract XPNPortfolio {
 
     function _getVaultAddress() internal view virtual returns (address) {}
 
-    function _getExpectedEfficientcy() internal view virtual returns (int256) {}
+    function _getExpectedEfficiency() internal view virtual returns (int256) {}
 
     function _getSignal() internal view virtual returns (int256[] memory) {}
 
@@ -98,7 +97,7 @@ abstract contract XPNPortfolio {
         for (uint256 i; i < symbols.length; i++) {
             string memory symbol = symbols[i];
             if (XPNUtils.compareStrings(symbol, _getDenomAssetSymbol())) {
-                prices[i] = ONE; // likely to be bug TODO: fix it
+                prices[i] = ONE;
                 continue;
             }
             int256 price = _getTokenPrice(_getSymbolToToken(symbol));
@@ -196,7 +195,7 @@ abstract contract XPNPortfolio {
     }
 
     // @notice distance between current portfolio and target signal in % term
-    // @dev 100% = 1e18.distance between target vs current portfolioallocation (how much value needed to be move) (in %)
+    // @dev 100% = 1e18.distance between target vs current portfolio allocation (how much value needed to be move) (in %)
     // calculate as sum(token-wise diff)/ 2
     // @return int256 distance
     function _signalPortfolioDiffPercent()
@@ -209,7 +208,7 @@ abstract contract XPNPortfolio {
         distance = _signalPortfolioDiffAllocation().l1Norm() / 2;
     }
 
-    // @notice verification modifier that reverts if operations result is not improve distance
+    // @notice verification modifier that reverts if operations result does not improve distance
     //or cause higher than expected loss
     modifier ensureTrade() {
         int256 preTradeValue = _portfolioValue();
@@ -220,7 +219,7 @@ abstract contract XPNPortfolio {
         int256 valueLoss = preTradeValue - _portfolioValue();
         int256 expectedLoss =
             (((preTradeValue * distanceImproved) / ONE) *
-                (ONE - _getExpectedEfficientcy())) / ONE;
+                (ONE - _getExpectedEfficiency())) / ONE;
 
         require(
             distanceImproved > 0 && valueLoss < expectedLoss,

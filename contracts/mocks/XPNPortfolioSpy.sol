@@ -61,7 +61,7 @@ contract XPNPortfolioSpy is XPNPortfolio {
         vaultAddress = _vaultAddress;
     }
 
-    function _getExpectedEfficientcy() internal view override returns (int256) {
+    function _getExpectedEfficiency() internal view override returns (int256) {
         return 98e16;
     }
 
@@ -83,8 +83,6 @@ contract XPNPortfolioSpy is XPNPortfolio {
     {
         return symbolTokenMap[_symbol];
     }
-
-    // TODO: remove all function below this line
 
     function _getTokensPrice()
         internal

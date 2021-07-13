@@ -406,10 +406,10 @@ contract XPNMain is IXPN, XPNCore, AccessControlEnumerable {
     // @dev note 1e18 = 100% default is 98e16 (98%)
     // @dev only callable by admin role
 
-    function setExpectedEfficientcy(int256 _expectedEfficientcy)
+    function setExpectedEfficiency(int256 _expectedEfficiency)
         external
         onlyRole(DEFAULT_ADMIN_ROLE)
     {
-        _setExpectedEfficientcy(_expectedEfficientcy);
+        _setExpectedEfficiency(_expectedEfficiency);
     }
 }
