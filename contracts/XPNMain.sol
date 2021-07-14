@@ -25,7 +25,7 @@ import "./interface/IXPN.sol";
 // @dev expose only external functions
 contract XPNMain is IXPN, XPNCore, AccessControlEnumerable {
     // @notice default admin role is part of AccessControlEnumerable library
-    // bytes32 public constant DEFAULT_ADMIN_ROLE = keccak256("SETTLER_ROLE");
+    // bytes32 public constant DEFAULT_ADMIN_ROLE = keccak256("DEFAULT_ADMIN_ROLE");
 
     bytes32 public constant SETTLER_ROLE = keccak256("SETTLER_ROLE");
     bytes32 public constant MANAGER_ROLE = keccak256("MANAGER_ROLE");
