@@ -33,7 +33,11 @@ to run a test against a local mainnet fork:
 
 Lint checks are automatically performed by [Husky](https://typicode.github.io/husky/#/) before code push.
 
+# Local Node
+
+to spin up a local hardhat node with exponent contracts run
+  1. `npx hardhat node --fork https://eth-mainnet.alchemyapi.io/v2/<key> --fork-block-number 12141529`
+  2. `npx hardhat run --network localhost scripts/local-deploy.js`
+
 # License 
 Exponent is licensed under the terms of the [GPL-3.0 License](LICENSE).
-
- 

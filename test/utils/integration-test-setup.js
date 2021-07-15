@@ -1,4 +1,6 @@
 require("dotenv").config();
+const hre = require("hardhat");
+const ethers = hre.ethers;
 
 const contracts = [
   { name: "USDC", address: process.env.USDC_ADDRESS, abi: "ERC20" },
