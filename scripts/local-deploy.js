@@ -7,7 +7,7 @@ const {
 } = require("../test/utils/integration-test-setup");
 
 async function main() {
-  const [admin, settler, signalProvider] = await ethers.getSigners();
+  const [admin, settler] = await ethers.getSigners();
 
   const contracts = await initMainnetEnv();
 
@@ -70,17 +70,19 @@ async function main() {
   await main.connect(admin).initializeFundConfig();
   console.log("Initialized fund config");
 
-  const depositAmount = 10000;
-
   await seedBalance({
     ticker: "WETH",
     contract: contracts.WETH,
     to: admin.address,
-    amount: depositAmount,
+    amount: "100000000000000000000",
   });
-
-  await contracts.WETH.approve(main.address, depositAmount);
-  await main.deposit(depositAmount);
+  await seedBalance({
+    ticker: "USDC",
+    contract: contracts.USDC,
+    to: admin.address,
+    amount: "100000000",
+  });
+  console.log("Admin account seeded with WETH and USDC: ", admin.address);
 }
 
 main()
