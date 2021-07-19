@@ -83,7 +83,7 @@ contract XPNSignal is ISignal {
     }
 
     // @notice get symbol list of the signal
-    // @param signalName unique identifier of signal 
+    // @param signalName unique identifier of signal
     // @return string[] list of symbol
     function getSignalSymbols(string memory signalName)
         external
@@ -98,9 +98,8 @@ contract XPNSignal is ISignal {
         return signalsReference[signalName];
     }
 
-
     // @notice get symbol list of the signal
-    // @param signalName unique identifier of signal 
+    // @param signalName unique identifier of signal
     // @return int256[] signal, % target allocation between each symbols.
     function getSignal(string memory signalName)
         external
@@ -115,5 +114,4 @@ contract XPNSignal is ISignal {
 
         return signalsWeight[signalName];
     }
-
 }

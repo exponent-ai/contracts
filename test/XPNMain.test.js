@@ -59,7 +59,9 @@ describe("XPNMain", function () {
 
     const Signal = await hre.artifacts.readArtifact("ISignal");
     this.signal = await deployMockContract(this.deployer, Signal.abi);
-    await this.signal.mock.getSignalSymbols.withArgs("signal1").returns(["ETH"]);
+    await this.signal.mock.getSignalSymbols
+      .withArgs("signal1")
+      .returns(["ETH"]);
     const Util = await ethers.getContractFactory("XPNUtils");
     this.util = await Util.deploy();
     await this.util.deployed();
@@ -291,7 +293,7 @@ describe("XPNMain", function () {
             .submitTradeOrders([""], [randomAddress()])
         ).to.be.reverted;
       });
-      it("allows settler address to make trades", async function () { });
+      it("allows settler address to make trades", async function () {});
     });
 
     describe("Manager", async function () {

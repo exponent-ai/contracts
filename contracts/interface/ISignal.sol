@@ -24,5 +24,4 @@ interface ISignal {
         external
         view
         returns (string[] memory);
-
 }
