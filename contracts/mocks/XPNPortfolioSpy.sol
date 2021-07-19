@@ -53,8 +53,13 @@ contract XPNPortfolioSpy is XPNPortfolio {
         return signalPool.getSignal(signalName);
     }
 
-    function _getSignalMeta() internal view override returns (string[] memory) {
-        return signalPool.getSignalMeta(signalName);
+    function _getSignalSymbols()
+        internal
+        view
+        override
+        returns (string[] memory)
+    {
+        return signalPool.getSignalSymbols(signalName);
     }
 
     function setVaultAddress(address _vaultAddress) public {

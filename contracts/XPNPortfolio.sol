@@ -34,7 +34,12 @@ abstract contract XPNPortfolio {
 
     function _getSignal() internal view virtual returns (int256[] memory) {}
 
-    function _getSignalMeta() internal view virtual returns (string[] memory) {}
+    function _getSignalSymbols()
+        internal
+        view
+        virtual
+        returns (string[] memory)
+    {}
 
     function _getSymbolToToken(string memory _symbol)
         internal
@@ -69,17 +74,18 @@ abstract contract XPNPortfolio {
         /*
         return amount of each asset. (in token)
         */
-        string[] memory symbols = _getSignalMeta();
+        string[] memory symbols = _getSignalSymbols();
         int256[] memory tokens = new int256[](symbols.length);
 
         for (uint256 i = 0; i < symbols.length; i++) {
-            IERC20Metadata tmpToken =
-                IERC20Metadata(_getSymbolToToken(symbols[i]));
+            IERC20Metadata tmpToken = IERC20Metadata(
+                _getSymbolToToken(symbols[i])
+            );
             uint256 tokenDecimals = uint256(tmpToken.decimals());
             int256 rawBalance = int256(tmpToken.balanceOf(_getVaultAddress()));
 
-            int256 convertedBalance =
-                (rawBalance * ONE) / int256(10**tokenDecimals);
+            int256 convertedBalance = (rawBalance * ONE) /
+                int256(10**tokenDecimals);
 
             tokens[i] = int256(convertedBalance);
         }
@@ -91,7 +97,7 @@ abstract contract XPNPortfolio {
     //assume correct price feed. (correct base and quote asset)
     // @return int256 array of price of each erc20 in denominated asset
     function _getTokensPrice() internal view virtual returns (int256[] memory) {
-        string[] memory symbols = _getSignalMeta();
+        string[] memory symbols = _getSignalSymbols();
         int256[] memory prices = new int256[](symbols.length);
         // resolves symbol to asset token
         for (uint256 i; i < symbols.length; i++) {
@@ -192,7 +198,7 @@ abstract contract XPNPortfolio {
     }
 
     // @notice distance between current portfolio and target signal in % term
-    // @dev 100% = 1e18.distance between target vs current portfolio allocation (how much value needed to be move) 
+    // @dev 100% = 1e18.distance between target vs current portfolio allocation (how much value needed to be move)
     // calculate as sum(token-wise diff)/ 2
     // @return int256 distance
     function _signalPortfolioDiffPercent()
@@ -211,12 +217,11 @@ abstract contract XPNPortfolio {
         int256 preTradeValue = _portfolioValue();
         int256 preTradeDistance = _signalPortfolioDiffPercent();
         _;
-        int256 distanceImproved =
-            preTradeDistance - _signalPortfolioDiffPercent();
+        int256 distanceImproved = preTradeDistance -
+            _signalPortfolioDiffPercent();
         int256 valueLoss = preTradeValue - _portfolioValue();
-        int256 expectedLoss =
-            (((preTradeValue * distanceImproved) / ONE) *
-                (ONE - _getExpectedEfficiency())) / ONE;
+        int256 expectedLoss = (((preTradeValue * distanceImproved) / ONE) *
+            (ONE - _getExpectedEfficiency())) / ONE;
 
         require(
             distanceImproved > 0 && valueLoss < expectedLoss,
