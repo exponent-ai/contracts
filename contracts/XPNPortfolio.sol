@@ -112,7 +112,6 @@ abstract contract XPNPortfolio {
     function _viewPortfolioMixValue() internal view returns (int256[] memory) {
         /*
             return value of each asset. (in denominated asset) 
-            TODO: refactor 
             */
         return _viewPortfolioToken().elementWiseMul(_getTokensPrice());
     }
@@ -159,7 +158,6 @@ abstract contract XPNPortfolio {
     {
         /*
             get different in value allocation between master signal and current portfolio allocation
-            TODO: refactor
         */
         require(_portfolioValue() > 0, "vault is empty");
 
@@ -177,7 +175,6 @@ abstract contract XPNPortfolio {
     {
         /*
             get different in token allocation between master signal and current portfolio allocation
-            TODO: implement this
         */
         require(_portfolioValue() > 0, "vault is empty");
 
@@ -195,7 +192,7 @@ abstract contract XPNPortfolio {
     }
 
     // @notice distance between current portfolio and target signal in % term
-    // @dev 100% = 1e18.distance between target vs current portfolio allocation (how much value needed to be move) (in %)
+    // @dev 100% = 1e18.distance between target vs current portfolio allocation (how much value needed to be move) 
     // calculate as sum(token-wise diff)/ 2
     // @return int256 distance
     function _signalPortfolioDiffPercent()
