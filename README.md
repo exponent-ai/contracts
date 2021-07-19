@@ -37,7 +37,7 @@ Lint checks are automatically performed by [Husky](https://typicode.github.io/hu
 
 to spin up a local hardhat node with exponent contracts run
   1. `npx hardhat node --fork https://eth-mainnet.alchemyapi.io/v2/<key> --fork-block-number 12141529`
-  2. `npx hardhat run --network localhost scripts/local-deploy.js`
+  2. `npm run deploy:local`
 
 # License 
 Exponent is licensed under the terms of the [GPL-3.0 License](LICENSE).
