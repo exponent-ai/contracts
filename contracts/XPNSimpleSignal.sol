@@ -32,9 +32,13 @@ contract XPNSignal is ISignal {
 
     address[] assetAddress;
 
+    // @notice register a new signal. caller will own the signal
+    // @param signalName unique identifier of the signal.
+    // @param signalType general info about the signal.
+    // @param symbols list of symbol that this signal will address. order sensitive. immutable
     function registerSignal(
         string memory signalName,
-        string memory _signalType,
+        string memory signalType,
         string[] memory symbols
     ) external override returns (string memory) {
         if (signalsMetaData[signalName].signalExist) {
@@ -42,17 +46,25 @@ contract XPNSignal is ISignal {
         }
         ownSignals[msg.sender][signalName] = true;
         signalsMetaData[signalName] = signalMetaData({
-            signalType: _signalType,
+            signalType: signalType,
             signalExist: true,
             signalActive: false
         });
     }
 
+    // @notice make a signal inactive
+    // @dev caller must be signal owner
     function withdrawSignal(string memory signalName) external override {
         require(ownSignals[msg.sender][signalName], "not your signal");
         signalsMetaData[signalName].signalActive = false;
     }
 
+    // @notice signal weight setter. just store signal weight as signal.
+    // @dev some of the param are just from ISignal, not really in use.
+    // @param signalName unique identifier of signal
+    // @param ref not in use.
+    // @param weights of each asset.
+    // @param data not in use.
     function submitSignal(
         string memory signalName,
         string[] memory ref,
@@ -65,11 +77,15 @@ contract XPNSignal is ISignal {
         signalsMetaData[signalName].signalActive = true;
     }
 
+    // @notice do nothing. this function is from ISignal.
     function updateSignal(string memory signalName) external override {
         revert("this signal do not require any update");
     }
 
-    function getSignalMeta(string memory signalName)
+    // @notice get symbol list of the signal
+    // @param signalName unique identifier of signal
+    // @return string[] list of symbol
+    function getSignalSymbols(string memory signalName)
         external
         view
         override
@@ -82,6 +98,9 @@ contract XPNSignal is ISignal {
         return signalsReference[signalName];
     }
 
+    // @notice get symbol list of the signal
+    // @param signalName unique identifier of signal
+    // @return int256[] signal, % target allocation between each symbols.
     function getSignal(string memory signalName)
         external
         view
@@ -94,9 +113,5 @@ contract XPNSignal is ISignal {
         );
 
         return signalsWeight[signalName];
-    }
-
-    function getMetaData() external pure override returns (string memory) {
-        return "nothing yet";
     }
 }

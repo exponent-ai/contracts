@@ -95,7 +95,9 @@ describe("XPNCore", function () {
     it("is reverted when thrown", async function () {
       await this.intmanager.mock.addAuthUserForFund.reverts();
       await this.policymanager.mock.enablePolicyForFund.reverts();
-      await this.signal.mock.getSignalMeta.withArgs("signal1").returns(["ETH"]);
+      await this.signal.mock.getSignalSymbols
+        .withArgs("signal1")
+        .returns(["ETH"]);
       // set mock for signal
       await expect(this.core.initializeFundConfig()).to.be.reverted;
       expect(await this.core.configInitialized()).to.be.false;
@@ -103,14 +105,18 @@ describe("XPNCore", function () {
     it("is called successfully", async function () {
       await this.intmanager.mock.addAuthUserForFund.returns();
       await this.policymanager.mock.enablePolicyForFund.returns();
-      await this.signal.mock.getSignalMeta.withArgs("signal1").returns(["ETH"]);
+      await this.signal.mock.getSignalSymbols
+        .withArgs("signal1")
+        .returns(["ETH"]);
       await this.core.initializeFundConfig();
       expect(await this.core.configInitialized()).to.be.true;
     });
     it("cannot be called twice", async function () {
       await this.intmanager.mock.addAuthUserForFund.returns();
       await this.policymanager.mock.enablePolicyForFund.returns();
-      await this.signal.mock.getSignalMeta.withArgs("signal1").returns(["ETH"]);
+      await this.signal.mock.getSignalSymbols
+        .withArgs("signal1")
+        .returns(["ETH"]);
       await this.core.initializeFundConfig();
       await expect(this.core.initializeFundConfig()).to.be.revertedWith(
         "XPNCore: config already initialized"
@@ -126,7 +132,9 @@ describe("XPNCore", function () {
     it("emits an event when called successfully", async function () {
       await this.intmanager.mock.addAuthUserForFund.returns();
       await this.policymanager.mock.enablePolicyForFund.returns();
-      await this.signal.mock.getSignalMeta.withArgs("signal1").returns(["ETH"]);
+      await this.signal.mock.getSignalSymbols
+        .withArgs("signal1")
+        .returns(["ETH"]);
       await this.core.initializeFundConfig();
       await this.comptroller.mock.callOnExtension.returns();
       await expect(this.core.addTrackedAsset(this.mockAddress))
@@ -162,7 +170,9 @@ describe("XPNCore", function () {
     it("is called successfully", async function () {
       await this.intmanager.mock.addAuthUserForFund.returns();
       await this.policymanager.mock.enablePolicyForFund.returns();
-      await this.signal.mock.getSignalMeta.withArgs("signal1").returns(["ETH"]);
+      await this.signal.mock.getSignalSymbols
+        .withArgs("signal1")
+        .returns(["ETH"]);
       await this.core.initializeFundConfig();
       const amount = 1000;
       await this.weth.mock.approve.returns(true);
@@ -289,11 +299,13 @@ describe("XPNCore", function () {
 
   describe("verifySignal", async function () {
     it("is called successfully for denom asset", async function () {
-      await this.signal.mock.getSignalMeta.withArgs("signal1").returns(["ETH"]);
+      await this.signal.mock.getSignalSymbols
+        .withArgs("signal1")
+        .returns(["ETH"]);
       await this.core.verifySignal(this.signal.address, "signal1");
     });
     it("is reverted when a symbol is not registered", async function () {
-      await this.signal.mock.getSignalMeta
+      await this.signal.mock.getSignalSymbols
         .withArgs("signal1")
         .returns(["SHIB"]);
       await expect(
@@ -301,7 +313,9 @@ describe("XPNCore", function () {
       ).to.be.revertedWith("XPNCore: token symbol is not registered");
     });
     it("is reverted when non denom asset is not whitelisted", async function () {
-      await this.signal.mock.getSignalMeta.withArgs("signal1").returns(["BTC"]);
+      await this.signal.mock.getSignalSymbols
+        .withArgs("signal1")
+        .returns(["BTC"]);
       const btc = randomAddress();
       const btcFeed = randomAddress();
       await this.core.addAssetConfig("BTC", btc, btcFeed);
@@ -310,7 +324,9 @@ describe("XPNCore", function () {
       ).to.be.revertedWith("XPNCore: token is not whitelisted");
     });
     it("is called sucessfully for non denom asset", async function () {
-      await this.signal.mock.getSignalMeta.withArgs("signal1").returns(["BTC"]);
+      await this.signal.mock.getSignalSymbols
+        .withArgs("signal1")
+        .returns(["BTC"]);
       const btc = randomAddress();
       const btcFeed = randomAddress();
       await this.core.whitelistAsset(btc);

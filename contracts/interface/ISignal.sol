@@ -20,10 +20,8 @@ interface ISignal {
 
     function getSignal(string memory) external view returns (int256[] memory);
 
-    function getSignalMeta(string memory)
+    function getSignalSymbols(string memory)
         external
         view
         returns (string[] memory);
-
-    function getMetaData() external view returns (string memory);
 }

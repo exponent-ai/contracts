@@ -59,7 +59,9 @@ describe("XPNMain", function () {
 
     const Signal = await hre.artifacts.readArtifact("ISignal");
     this.signal = await deployMockContract(this.deployer, Signal.abi);
-    await this.signal.mock.getSignalMeta.withArgs("signal1").returns(["ETH"]);
+    await this.signal.mock.getSignalSymbols
+      .withArgs("signal1")
+      .returns(["ETH"]);
     const Util = await ethers.getContractFactory("XPNUtils");
     this.util = await Util.deploy();
     await this.util.deployed();
@@ -105,7 +107,7 @@ describe("XPNMain", function () {
   describe("Role based access control", async function () {
     describe("Admin", async function () {
       beforeEach(async function () {
-        await this.signal.mock.getSignalMeta
+        await this.signal.mock.getSignalSymbols
           .withArgs("signal1")
           .returns(["ETH"]);
         await this.intmanager.mock.addAuthUserForFund.returns();
@@ -129,7 +131,7 @@ describe("XPNMain", function () {
         await this.main.connect(this.admin).initializeFundConfig();
       });
       it("only admin can set signal address", async function () {
-        await this.signal.mock.getSignalMeta
+        await this.signal.mock.getSignalSymbols
           .withArgs("signal1")
           .returns(["ETH"]);
         await expect(
@@ -278,7 +280,7 @@ describe("XPNMain", function () {
 
     describe("Settler", async function () {
       beforeEach(async function () {
-        await this.signal.mock.getSignalMeta
+        await this.signal.mock.getSignalSymbols
           .withArgs("signal1")
           .returns(["ETH"]);
         await this.intmanager.mock.addAuthUserForFund.returns();

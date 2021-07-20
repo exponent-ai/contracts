@@ -249,7 +249,8 @@ contract XPNCore is XPNVault, XPNSettlement, XPNPortfolio {
     function _verifySignal(address _signal, string memory _signalName)
         internal
     {
-        string[] memory symbols = ISignal(_signal).getSignalMeta(_signalName);
+        string[] memory symbols =
+            ISignal(_signal).getSignalSymbols(_signalName);
         for (uint256 i; i < symbols.length; i++) {
             string memory symbol = symbols[i];
             if (XPNUtils.compareStrings(symbol, _getDenomAssetSymbol())) {
@@ -304,7 +305,8 @@ contract XPNCore is XPNVault, XPNSettlement, XPNPortfolio {
 
     // @notice fetch token price for an asset
     // @dev we utilize Chainlink price feed interface to get current price data,
-    // in the case that the asset is not supported on Chainlink, we need to ensure that we interact with a custom adapter
+    // in the case that the asset is not supported on Chainlink, 
+    // we need to ensure that we interact with a custom adapter
     function _getTokenPrice(address _asset)
         internal
         view
@@ -427,7 +429,8 @@ contract XPNCore is XPNVault, XPNSettlement, XPNPortfolio {
         return true;
     }
 
-    // @dev performs 2 actions: settle current fee on Enzyme vault and mint new shares to vault owner representing accrued fees
+    // @dev performs 2 actions: settle current fee on Enzyme vault and mint 
+    //      new shares to vault owner representing accrued fees
     function _redeemFeesHook(address _feeManager, address[] memory _fees)
         internal
         override
@@ -569,8 +572,13 @@ contract XPNCore is XPNVault, XPNSettlement, XPNPortfolio {
         return signalPool.getSignal(signalName);
     }
 
-    function _getSignalMeta() internal view override returns (string[] memory) {
-        return signalPool.getSignalMeta(signalName);
+    function _getSignalSymbols()
+        internal
+        view
+        override
+        returns (string[] memory)
+    {
+        return signalPool.getSignalSymbols(signalName);
     }
 
     function _getExpectedEfficiency() internal view override returns (int256) {
