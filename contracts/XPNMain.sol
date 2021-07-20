@@ -36,10 +36,9 @@ contract XPNMain is IXPN, XPNCore, AccessControlEnumerable {
 
     constructor(
         State memory _constructorConfig,
-        address _denomAsset,
         string memory _tokenName,
         string memory _symbol
-    ) XPNCore(_constructorConfig, _denomAsset, _tokenName, _symbol) {
+    ) XPNCore(_constructorConfig, _tokenName, _symbol) {
         _setupRole(DEFAULT_ADMIN_ROLE, _constructorConfig.defaultAdmin);
         _setupRole(SETTLER_ROLE, _constructorConfig.defaultSettler);
     }
@@ -305,7 +304,7 @@ contract XPNMain is IXPN, XPNCore, AccessControlEnumerable {
     /////////////////////////
 
     function getDenominationAsset() external view override returns (address) {
-        return address(denomAsset);
+        return _getDenomAssetAddress();
     }
 
     function getLPTokenAddress() external view override returns (address) {

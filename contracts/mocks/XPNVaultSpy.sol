@@ -21,7 +21,7 @@ contract XPNVaultSpy is XPNVault {
         address _shares,
         string memory _lpname,
         string memory _lpsymbol
-    ) XPNVault(_denomAsset, _lpname, _lpsymbol) {
+    ) XPNVault(_lpname, _lpsymbol) {
         shares = _shares;
         admin = _admin;
         mockDenomAsset = MockERC20(_denomAsset);
@@ -72,13 +72,17 @@ contract XPNVaultSpy is XPNVault {
         withdrawHookCalled = true;
         address[] memory assets = new address[](1);
         uint256[] memory amounts = new uint256[](1);
-        assets[0] = address(denomAsset);
+        assets[0] = address(_getDenomAssetAddress());
         amounts[0] = amountToWithdraw;
         return (assets, amounts);
     }
 
     function _getSharesAddress() internal view override returns (address) {
         return shares;
+    }
+
+    function _getDenomAssetAddress() internal view override returns (address) {
+        return address(mockDenomAsset);
     }
 
     function _getAdminAddress() internal view override returns (address) {

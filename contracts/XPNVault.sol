@@ -28,11 +28,9 @@ import "hardhat/console.sol";
 // @notice to be inherited by the implementation contract for added functionality
 // @dev deposit/ withdraw hooks and calculation must be overridden
 abstract contract XPNVault is ReentrancyGuard {
-    using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
-    //TODO denomAsset state should be hydrated by the inheriter
-    IERC20 public denomAsset;
+    // @notice LP tokens should track Enzyme shares 1-1 through deposit and withdraw
     LPToken public lptoken;
 
     event Deposit(address indexed _depositor, uint256 _amount);
@@ -42,12 +40,7 @@ abstract contract XPNVault is ReentrancyGuard {
         uint256[] _payoutAmount
     );
 
-    constructor(
-        address _denomAsset,
-        string memory _lpname,
-        string memory _lpsymbol
-    ) {
-        denomAsset = IERC20(_denomAsset);
+    constructor(string memory _lpname, string memory _lpsymbol) {
         lptoken = new LPToken(_lpname, _lpsymbol);
     }
 
@@ -56,6 +49,7 @@ abstract contract XPNVault is ReentrancyGuard {
     // @dev denominated asset must be approved first
     // @return amount of LP tokens minted
     function _deposit(uint256 _amount) internal returns (uint256 minted) {
+        IERC20 denomAsset = IERC20(_getDenomAssetAddress());
         require(_amount > 0, "Vault: _amount cant be zero");
         uint256 before = denomAsset.balanceOf(_getSharesAddress());
         require(
@@ -69,7 +63,7 @@ abstract contract XPNVault is ReentrancyGuard {
             revert("Vault: unsuccessful deposit");
         }
         require(
-            denomAsset.balanceOf(_getSharesAddress()) >= before.add(_amount),
+            denomAsset.balanceOf(_getSharesAddress()) >= (before + _amount),
             "Vault: incorrect balance after deposit"
         );
         lptoken.mint(msg.sender, minted);
@@ -88,7 +82,7 @@ abstract contract XPNVault is ReentrancyGuard {
         require(_amount > 0, "Vault: _amount cant be zero");
         require(
             lptoken.balanceOf(msg.sender) >= _amount,
-            "Vault: not enough lptoken to withdrwal"
+            "Vault: not enough lptoken to withdraw"
         );
         lptoken.burn(msg.sender, _amount); // burn user's lp balance without intermediate transferFrom
         (payoutAssets, payoutAmounts) = _withdrawHook(_amount);
@@ -96,6 +90,12 @@ abstract contract XPNVault is ReentrancyGuard {
         require(result, "Vault: unsuccessful transfer to withdrawer");
     }
 
+    // @notice redeem enzyme transaction fee enzyme vault to admin address
+    // @param _feeManager address of the enzyme fee manager contract
+    // @param _fees array of fee contract addresses
+    // @return payoutAssets array of the asset to payout
+    // @return payoutAmounts array of the amount to payout
+    // @dev fees are in the form of enzyme shares inflation, the difference in total shares supply and withdraw
     function _redeemFees(address _feeManager, address[] calldata _fees)
         internal
         returns (address[] memory payoutAssets, uint256[] memory payoutAmounts)
@@ -111,36 +111,44 @@ abstract contract XPNVault is ReentrancyGuard {
         require(result, "Vault: unsuccessful redemption");
     }
 
+    // @dev transfer each asset back to recipient, this is one additional transfer for each asset on top of Enzyme's
     function _doWithdraw(
         address recipient,
         address[] memory payoutAssets,
         uint256[] memory payoutAmounts
     ) private returns (bool) {
         for (uint8 i = 0; i < payoutAssets.length; i++) {
-            //TODO there are two ERC20 transfers for every assets, here and in Enzyme, find ways to optimize
             bool res =
                 IERC20(payoutAssets[i]).transfer(recipient, payoutAmounts[i]);
             if (!res) return false;
         }
-        // won't verify that that payout assets is calculated correctly due to gas cost of handling multiple payouts
+        // won't verify that that payout assets is calculated correctly due to gas cost of tracking multiple payouts
         emit Withdraw(recipient, payoutAssets, payoutAmounts);
         return true;
     }
 
-    // @notice internal functions to be overriden by implementor contracts
-    // @dev can modify inputs and outputs as needed
+    // @notice internal functions to be overriden by implementor contract
+
+    // @notice deposit asset into enzyme contract, returns the amount of minted shares
     function _depositHook(uint256 _amount) internal virtual returns (uint256) {}
 
+    // @notice get the enzyme shares address
     function _getSharesAddress() internal virtual returns (address) {}
 
+    // @notice get the denominated asset address
+    function _getDenomAssetAddress() internal virtual returns (address) {}
+
+    // @notice get the admin address
     function _getAdminAddress() internal virtual returns (address) {}
 
+    // @notice withdraw assets from enzyme contract
     function _withdrawHook(uint256 _amount)
         internal
         virtual
         returns (address[] memory, uint256[] memory)
     {}
 
+    // @notice redeem fees from enzyme
     function _redeemFeesHook(address _feeManager, address[] memory _fees)
         internal
         virtual

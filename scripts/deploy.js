@@ -25,6 +25,7 @@ async function main() {
     process.env.ADMIN_ADDRESS,
     process.env.SETTLER_ADDRESS,
     this.simpleSignal.address, // signal address
+    process.env.DENOM_ASSET_ADDRESS,
     process.env.DENOM_ASSET_SYMBOL,
     process.env.ENZYME_DEPLOYER,
     process.env.ENZYME_INT_MANAGER,
@@ -44,7 +45,6 @@ async function main() {
   });
   this.core = await Core.deploy(
     constructorArgs,
-    process.env.DENOM_ASSET_ADDRESS,
     process.env.TOKEN_NAME,
     process.env.TOKEN_SYMBOL
   );

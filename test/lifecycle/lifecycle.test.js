@@ -115,6 +115,7 @@ describe("XPN life cycle", function () {
         this.admin.address,
         this.settler.address,
         this.simpleSignal.address, // signal address
+        contracts.WETH.address,
         "WETH",
         contracts.ENZYME_DEPLOYER.address,
         contracts.ENZYME_INT_MANAGER.address,
@@ -127,12 +128,7 @@ describe("XPN life cycle", function () {
         "EX-ETH",
       ];
 
-      this.main = await Main.deploy(
-        constructorArgs,
-        contracts.WETH.address,
-        "EX-ETH",
-        "EX-ETH"
-      );
+      this.main = await Main.deploy(constructorArgs, "EX-ETH", "EX-ETH");
       await this.main.deployed();
     });
 

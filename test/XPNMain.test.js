@@ -76,6 +76,7 @@ describe("XPNMain", function () {
       this.admin.address,
       this.settler.address,
       this.signal.address,
+      this.weth.address,
       "ETH", // ETH denominated
       this.funddeployer.address,
       this.intmanager.address,
@@ -92,12 +93,7 @@ describe("XPNMain", function () {
       this.comptroller.address,
       this.shares.address
     );
-    this.main = await Main.deploy(
-      constructorArgs,
-      this.weth.address,
-      "EX-ETH",
-      "EX-ETH"
-    );
+    this.main = await Main.deploy(constructorArgs, "EX-ETH", "EX-ETH");
     await this.main.deployed();
     await this.main
       .connect(this.admin)

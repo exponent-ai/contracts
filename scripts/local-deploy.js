@@ -27,6 +27,7 @@ async function main() {
     admin.address,
     settler.address,
     simpleSignal.address,
+    contracts.WETH.address,
     "WETH",
     contracts.ENZYME_DEPLOYER.address,
     contracts.ENZYME_INT_MANAGER.address,
@@ -44,12 +45,7 @@ async function main() {
       XPNUtils: util.address,
     },
   });
-  const main = await Main.deploy(
-    constructorArgs,
-    contracts.WETH.address,
-    "EX-ETH",
-    "EX-ETH"
-  );
+  const main = await Main.deploy(constructorArgs, "EX-ETH", "EX-ETH");
   await main.deployed();
   console.log("XPNMain deployed to:", main.address);
 

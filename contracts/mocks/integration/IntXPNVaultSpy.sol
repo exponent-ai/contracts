@@ -18,6 +18,7 @@ contract SpyIntXPNVault is XPNVault {
     address public integrationManager;
     address public assetTrackedAdapter;
     address public admin;
+    address public denomAsset;
 
     constructor(
         address _admin,
@@ -28,10 +29,11 @@ contract SpyIntXPNVault is XPNVault {
         string memory _name,
         string memory _symbol,
         bytes memory _feeConfig
-    ) XPNVault(_denomAsset, _name, _symbol) {
+    ) XPNVault(_name, _symbol) {
         deployer = IFundDeployer(_deployer);
         integrationManager = _integrationManager;
         assetTrackedAdapter = _trackedAdapter;
+        denomAsset = _denomAsset;
         (address controllerAddress, address sharesAddress) =
             deployer.createNewFund(
                 address(this),
@@ -63,7 +65,7 @@ contract SpyIntXPNVault is XPNVault {
     }
 
     function _depositHook(uint256 _amount) internal override returns (uint256) {
-        denomAsset.approve(address(controller), _amount);
+        IERC20(denomAsset).approve(address(controller), _amount);
         address[] memory buyers = new address[](1);
         uint256[] memory amounts = new uint256[](1);
         buyers[0] = address(this);
@@ -101,6 +103,10 @@ contract SpyIntXPNVault is XPNVault {
 
     function _getAdminAddress() internal view override returns (address) {
         return admin;
+    }
+
+    function _getDenomAssetAddress() internal view override returns (address) {
+        return denomAsset;
     }
 
     function redeemFees(address _feeManager, address[] calldata _fees)

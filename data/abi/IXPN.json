@@ -19,6 +19,11 @@
             "type": "address"
           },
           {
+            "internalType": "address",
+            "name": "denomAssetAddress",
+            "type": "address"
+          },
+          {
             "internalType": "string",
             "name": "denomAssetSymbol",
             "type": "string"

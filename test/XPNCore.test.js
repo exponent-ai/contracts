@@ -65,6 +65,7 @@ describe("XPNCore", function () {
       this.admin.address,
       this.settler.address,
       this.signal.address,
+      this.weth.address,
       "ETH", // ETH denominated
       this.funddeployer.address,
       this.intmanager.address,
@@ -81,12 +82,7 @@ describe("XPNCore", function () {
       this.comptroller.address,
       this.shares.address
     );
-    this.core = await Core.deploy(
-      constructorArgs,
-      this.weth.address,
-      "EX-ETH",
-      "EX-ETH"
-    );
+    this.core = await Core.deploy(constructorArgs, "EX-ETH", "EX-ETH");
     await this.core.deployed();
     await this.core.setSignal(this.signal.address, "signal1");
   });

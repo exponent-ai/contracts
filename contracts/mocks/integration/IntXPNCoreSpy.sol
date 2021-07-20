@@ -10,10 +10,9 @@ contract IntXPNCoreSpy is XPNCore {
 
     constructor(
         State memory _constructorConfig,
-        address _denomAsset,
         string memory _tokenName,
         string memory _symbol
-    ) XPNCore(_constructorConfig, _denomAsset, _tokenName, _symbol) {}
+    ) XPNCore(_constructorConfig, _tokenName, _symbol) {}
 
     function addAssetConfig(
         string memory _symbol,

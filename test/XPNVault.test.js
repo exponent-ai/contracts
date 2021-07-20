@@ -136,7 +136,7 @@ describe("XPNVault", function () {
 
     it("should revert if there is not enough lptoken to withdraw", async function () {
       await expect(this.vault.withdraw(this.withdrawAmount)).to.be.revertedWith(
-        "Vault: not enough lptoken to withdrwal"
+        "Vault: not enough lptoken to withdraw"
       );
     });
 

@@ -39,6 +39,7 @@ contract XPNCore is XPNVault, XPNSettlement, XPNPortfolio {
         address defaultAdmin; // xpn admin account, only used on deployment
         address defaultSettler; // EOA responsible for calling settlement, only used on deployment
         address signal; // contract address for signal to pull from
+        address denomAssetAddress; // address of the denominated asset
         string denomAssetSymbol; // symbol of the denominated asset
         address EZdeployer; // Enzyme FundDeployer contract
         address EZintegrationManager; // Enzyme IntegrationManager contract
@@ -108,21 +109,16 @@ contract XPNCore is XPNVault, XPNSettlement, XPNPortfolio {
     // assume all the inputs are valid
     constructor(
         State memory _constructorConfig,
-        address _denomAsset,
         string memory _tokenName,
         string memory _symbol
-    )
-        XPNPortfolio()
-        XPNVault(_denomAsset, _tokenName, _symbol)
-        XPNSettlement()
-    {
+    ) XPNPortfolio() XPNVault(_tokenName, _symbol) XPNSettlement() {
         globalState = _constructorConfig;
-        _whitelistAsset(_denomAsset); //denominated asset is automatically whitelisted
+        _whitelistAsset(globalState.denomAssetAddress); //denominated asset is automatically whitelisted
         (address comptrollerAddress, address sharesAddress) =
             IFundDeployer(globalState.EZdeployer).createNewFund(
                 address(this), // fund deployer
                 globalState.name, // fund name
-                address(denomAsset), // denomination asset
+                address(globalState.denomAssetAddress), // denomination asset
                 SHARES_TIMELOCK, // timelock for share actions
                 globalState.EZfeeConfig, // fees configuration
                 "" // no policy manager data
@@ -331,6 +327,10 @@ contract XPNCore is XPNVault, XPNSettlement, XPNPortfolio {
         return symbolToAsset[_symbol];
     }
 
+    function _getDenomAssetAddress() internal view override returns (address) {
+        return globalState.denomAssetAddress;
+    }
+
     function _getDenomAssetSymbol()
         internal
         view
@@ -343,7 +343,10 @@ contract XPNCore is XPNVault, XPNSettlement, XPNPortfolio {
     // @dev implements actual enzyme share purchase on the comptroller
     function _depositHook(uint256 _amount) internal override returns (uint256) {
         require(configInitialized, "XPNCore: config not yet initialized");
-        denomAsset.approve(address(globalState.EZcomptroller), _amount);
+        IERC20(globalState.denomAssetAddress).approve(
+            address(globalState.EZcomptroller),
+            _amount
+        );
         address[] memory buyer = new address[](1);
         uint256[] memory amount = new uint256[](1);
         buyer[0] = address(this);
@@ -459,7 +462,7 @@ contract XPNCore is XPNVault, XPNSettlement, XPNPortfolio {
         address newComptrollerProxy =
             IFundDeployer(postMigrationState.EZdeployer)
                 .createMigratedFundConfig(
-                address(denomAsset), // denominated asset
+                globalState.denomAssetAddress, // denominated asset
                 SHARES_TIMELOCK, // sets shares action timelock to 1
                 _newState.EZfeeConfig, // utilize new fee config
                 "" // no policy manager config

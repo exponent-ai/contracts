@@ -41,6 +41,7 @@ describe("XPNCore", function () {
       this.admin.address,
       this.settler.address,
       this.simpleSignal.address, // signal address
+      contracts.WETH.address,
       "ETH",
       contracts.ENZYME_DEPLOYER.address,
       contracts.ENZYME_INT_MANAGER.address,
@@ -53,12 +54,7 @@ describe("XPNCore", function () {
       "EX-ETH",
     ];
 
-    this.core = await Core.deploy(
-      constructorArgs,
-      contracts.WETH.address,
-      "EX-ETH",
-      "EX-ETH"
-    );
+    this.core = await Core.deploy(constructorArgs, "EX-ETH", "EX-ETH");
     await this.core.deployed();
     await this.core.setSignal(this.simpleSignal.address, "testsignal1");
   });
@@ -135,6 +131,7 @@ describe("XPNCore", function () {
         this.admin.address,
         this.settler.address,
         this.simpleSignal.address,
+        contracts.WETH.address,
         "ETH",
         newDeployer.address, // our new fund deployer contract
         contracts.ENZYME_INT_MANAGER.address,
