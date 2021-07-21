@@ -38,6 +38,10 @@ interface IXPN is IAccessControlEnumerable {
 
     function getSignalName() external view returns (string memory);
 
+    function getComptrollerAddress() external view returns (address);
+
+    function getSharesAddress() external view returns (address);
+
     function getLPTokenAddress() external view returns (address);
 
     function getDenominationAsset() external view returns (address);
