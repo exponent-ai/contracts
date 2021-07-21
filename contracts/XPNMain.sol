@@ -311,7 +311,7 @@ contract XPNMain is IXPN, XPNCore, AccessControlEnumerable {
         return address(lptoken);
     }
 
-    function getSharesAddress() external view returns (address) {
+    function getSharesAddress() external view override returns (address) {
         return _getSharesAddress();
     }
 
