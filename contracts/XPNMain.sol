@@ -343,7 +343,7 @@ contract XPNMain is IXPN, XPNCore, AccessControlEnumerable {
         return _getDeployerAddress();
     }
 
-    function getComptrollerAddress() external view returns (address) {
+    function getComptrollerAddress() external view override returns (address) {
         return _getComptrollerAddress();
     }
 
