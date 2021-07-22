@@ -17,7 +17,7 @@ const btcAddress = "0x2260fac5e5542a773aa44fbcfedf7c193bc2c599";
 const btcETHFeed = "0xdeb288F737066589598e9214E782fa5A8eD689e8";
 
 async function main() {
-  const [admin, settler, venueWhitelister] = await ethers.getSigners();
+  const [admin, settler, venueWhitelister, bob] = await ethers.getSigners();
   const contracts = await initMainnetEnv();
 
   // Seed balances
@@ -33,7 +33,21 @@ async function main() {
     to: admin.address,
     amount: "100000000",
   });
-  console.log("Admin account seeded with WETH and USDC: ", admin.address);
+  await seedBalance({
+    ticker: "WETH",
+    contract: contracts.WETH,
+    to: bob.address,
+    amount: "100000000000000000000",
+  });
+  await seedBalance({
+    ticker: "USDC",
+    contract: contracts.USDC,
+    to: bob.address,
+    amount: "100000000",
+  });
+  console.log("Admin and Bob account seeded with WETH and USDC.");
+  console.log("Admin: ", admin.address);
+  console.log("Bob: ", bob.address);
 
   // Deploy Signal
   const Signal = await ethers.getContractFactory("XPNSignal");
@@ -121,19 +135,19 @@ async function main() {
   console.log("Kyber venue whitelisted");
 
   // Initial vault deposit
-  const depositAmount = ethers.utils.parseUnits("50", 18);
+  const depositAmount = ethers.utils.parseUnits("5", 18);
   await contracts.WETH.connect(admin).approve(main.address, depositAmount);
-  console.log("Approved for initial deposit");
+  console.log("Admin approved for initial deposit");
   await main.connect(admin).deposit(depositAmount);
-  console.log("Initial deposit completed");
+  console.log("Admin has made the vaults first deposit");
 
   // Sumbit trade
-  const tradeAmount = "1804000000";
+  const tradeAmount = "3608000000";
   const kyberArgs = kyberTakeOrderArgs({
     incomingAsset: contracts.USDC.address,
     minIncomingAssetAmount: tradeAmount,
     outgoingAsset: contracts.WETH.address,
-    outgoingAssetAmount: ethers.utils.parseEther("1"),
+    outgoingAssetAmount: ethers.utils.parseEther("2"),
   });
   await main
     .connect(settler)
