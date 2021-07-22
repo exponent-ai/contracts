@@ -250,6 +250,62 @@ contract XPNMain is IXPN, XPNCore, AccessControlEnumerable {
     }
 
     /////////////////////////
+    // portfolio  functions
+    /////////////////////////
+
+    // @notice distance between current portfolio and target signal in % term
+    // @dev 100% = 1e18.distance between target vs current portfolio allocation (how much value needed to be move) (in %)
+    // calculate as sum(token-wise diff)/ 2
+    // @return int256 distance
+    function signalPortfolioDiffPercent() external view returns (int256) {
+        return _signalPortfolioDiffPercent();
+    }
+
+    // @notice calculate different between current portfolio position and target from signal
+    // in balance of coresponding erc20
+    // @dev 100% = 1e18.
+    // @return int256 array balance different from target for each asset (directional)
+    function signalPortfolioDiffToken()
+        external
+        view
+        returns (int256[] memory)
+    {
+        return _signalPortfolioDiffToken();
+    }
+
+    // @notice calculate different between current portfolio position and target from signal in % term
+    // @dev 100% = 1e18
+    // @return int256 array % different from target for each asset (directional)
+    function signalPortfolioDiffAllocation()
+        external
+        view
+        returns (int256[] memory)
+    {
+        return _signalPortfolioDiffAllocation();
+    }
+
+    // @notice calculate different between current portfolio position and target from signal in denominated asset value
+    // @dev 100% = 1e18
+    // @return int256 array denominated asset value different from target for each asset (directional)
+    function signalPortfolioDiffValue()
+        external
+        view
+        returns (int256[] memory)
+    {
+        return _signalPortfolioDiffValue();
+    }
+
+    // @notice set expected trade efficiency
+    // @dev note 1e18 = 100% default is 98e16 (98%)
+    // @dev only callable by admin role
+    function setExpectedEfficiency(int256 _expectedEfficiency)
+        external
+        onlyRole(DEFAULT_ADMIN_ROLE)
+    {
+        _setExpectedEfficiency(_expectedEfficiency);
+    }
+
+    /////////////////////////
     // settlement functions
     /////////////////////////
 
@@ -347,6 +403,14 @@ contract XPNMain is IXPN, XPNCore, AccessControlEnumerable {
         return _getComptrollerAddress();
     }
 
+    function getAdminAddress() external view returns (address) {
+        return _getAdminAddress();
+    }
+
+    /////////////////////////
+    // status getter functions
+    /////////////////////////
+
     function isRestricted() external view returns (bool) {
         return _isRestricted();
     }
@@ -355,60 +419,15 @@ contract XPNMain is IXPN, XPNCore, AccessControlEnumerable {
         return _isWalletWhitelisted(_wallet);
     }
 
-    function venueWhitelist(address _venue) external view returns (bool) {
+    function isVenueWhitelisted(address _venue) external view returns (bool) {
         return _isVenueWhitelisted(_venue);
     }
 
-    function assetWhitelist(address _asset) external view returns (bool) {
+    function isAssetWhitelisted(address _asset) external view returns (bool) {
         return _isAssetWhitelisted(_asset);
     }
 
-    function configInitialized() external view returns (bool) {
+    function isConfigInitialized() external view returns (bool) {
         return _isConfigInitialized();
-    }
-
-    function getAdminAddress() external view returns (address) {
-        return _getAdminAddress();
-    }
-
-    // only expose diff related info.
-
-    function signalPortfolioDiffPercent() external view returns (int256) {
-        return _signalPortfolioDiffPercent();
-    }
-
-    function signalPortfolioDiffToken()
-        external
-        view
-        returns (int256[] memory)
-    {
-        return _signalPortfolioDiffToken();
-    }
-
-    function signalPortfolioDiffAllocation()
-        external
-        view
-        returns (int256[] memory)
-    {
-        return _signalPortfolioDiffAllocation();
-    }
-
-    function signalPortfolioDiffValue()
-        external
-        view
-        returns (int256[] memory)
-    {
-        return _signalPortfolioDiffValue();
-    }
-
-    // @notice set expected trade efficiency
-    // @dev note 1e18 = 100% default is 98e16 (98%)
-    // @dev only callable by admin role
-
-    function setExpectedEfficiency(int256 _expectedEfficiency)
-        external
-        onlyRole(DEFAULT_ADMIN_ROLE)
-    {
-        _setExpectedEfficiency(_expectedEfficiency);
     }
 }

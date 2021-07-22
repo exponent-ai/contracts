@@ -55,7 +55,7 @@ describe("XPNPortfolioModifier", function () {
           this.acceptablePortValue,
           this.notImprovedDistance
         )
-      ).to.be.revertedWith("trade requirement not satisfy");
+      ).to.be.revertedWith("trade requirement not satisfied");
     });
 
     it("should revert if value loss more than expected", async function () {
@@ -68,7 +68,7 @@ describe("XPNPortfolioModifier", function () {
           this.highLossPortValue,
           this.improvedDistance
         )
-      ).to.be.revertedWith("trade requirement not satisfy");
+      ).to.be.revertedWith("trade requirement not satisfied");
     });
 
     it("should revert if value loss more than expected and distance improved less than zero", async function () {
@@ -81,7 +81,7 @@ describe("XPNPortfolioModifier", function () {
           this.highLossPortValue,
           this.notImprovedDistance
         )
-      ).to.be.revertedWith("trade requirement not satisfy");
+      ).to.be.revertedWith("trade requirement not satisfied");
     });
   });
 });

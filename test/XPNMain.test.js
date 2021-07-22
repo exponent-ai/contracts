@@ -70,7 +70,7 @@ describe("XPNMain", function () {
         XPNUtils: this.util.address,
       },
     });
-    this.whitelistPolicy = randomAddress(); // mock addr
+    this.whitelistPolicyAddress = randomAddress(); // mock addr
     this.trackedAssetAdapterAddress = randomAddress(); // mock addr
     const constructorArgs = [
       this.admin.address,
@@ -82,7 +82,7 @@ describe("XPNMain", function () {
       this.intmanager.address,
       this.trackedAssetAdapterAddress,
       this.policymanager.address,
-      this.whitelistPolicy,
+      this.whitelistPolicyAddress,
       this.mockAddress,
       this.mockAddress,
       [],
@@ -353,7 +353,7 @@ describe("XPNMain", function () {
         await expect(this.main.connect(this.settler).whitelistVenue(venue)).to
           .be.reverted;
         await this.main.connect(this.venueWhitelister).whitelistVenue(venue);
-        expect(await this.main.venueWhitelist(venue)).to.be.true;
+        expect(await this.main.isVenueWhitelisted(venue)).to.be.true;
       });
       it("only whitelister can dewhitelist venue", async function () {
         const venue = randomAddress();
@@ -361,7 +361,7 @@ describe("XPNMain", function () {
         await expect(this.main.connect(this.settler).deWhitelistVenue(venue)).to
           .be.reverted;
         await this.main.connect(this.venueWhitelister).deWhitelistVenue(venue);
-        expect(await this.main.venueWhitelist(venue)).to.be.false;
+        expect(await this.main.isVenueWhitelisted(venue)).to.be.false;
       });
     });
 
@@ -379,7 +379,7 @@ describe("XPNMain", function () {
         await expect(this.main.connect(this.settler).whitelistAsset(asset)).to
           .be.reverted;
         await this.main.connect(this.assetWhitelister).whitelistAsset(asset);
-        expect(await this.main.assetWhitelist(asset)).to.be.true;
+        expect(await this.main.isAssetWhitelisted(asset)).to.be.true;
       });
       it("only whitelister can dewhitelist asset", async function () {
         const asset = randomAddress();
@@ -387,12 +387,96 @@ describe("XPNMain", function () {
         await expect(this.main.connect(this.settler).deWhitelistAsset(asset)).to
           .be.reverted;
         await this.main.connect(this.assetWhitelister).deWhitelistAsset(asset);
-        expect(await this.main.assetWhitelist(asset)).to.be.false;
+        expect(await this.main.isAssetWhitelisted(asset)).to.be.false;
       });
     });
   });
 
+  describe("Settler", async function () {
+    it("only settler can call submitTrustedTradeOrders", async function () {
+      await expect(
+        this.main
+          .connect(this.assetWhitelister)
+          .submitTrustedTradeOrders(["0x"], [randomAddress()])
+      ).to.be.reverted;
+      await expect(
+        this.main
+          .connect(this.settler)
+          .submitTrustedTradeOrders(["0x"], [randomAddress()])
+      ).to.be.revertedWith("XPNSettlement: venue is not whitelisted");
+    });
+    it("only settler can call submitTrustedPoolOrders", async function () {
+      await expect(
+        this.main
+          .connect(this.assetWhitelister)
+          .submitTrustedPoolOrders(["0x"], [0], [randomAddress()])
+      ).to.be.reverted;
+      await expect(
+        this.main
+          .connect(this.settler)
+          .submitTrustedPoolOrders(["0x"], [0], [randomAddress()])
+      ).to.be.revertedWith("XPNSettlement: venue is not whitelisted");
+    });
+  });
+
   describe("state getters", async function () {
-    //TODO
+    it("should get denominated asset", async function () {
+      expect(await this.main.getDenominationAsset()).to.be.equal(
+        this.weth.address
+      );
+    });
+    it("should get lp token address", async function () {
+      expect(await this.main.getLPTokenAddress()).to.not.be.null;
+    });
+    it("should get shares address", async function () {
+      expect(await this.main.getSharesAddress).to.not.be.null;
+    });
+    it("should get current signal name", async function () {
+      expect(await this.main.getSignalName()).to.be.equal("signal1");
+    });
+    it("should get signal pool address", async function () {
+      expect(await this.main.getSignalPool()).to.be.equal(this.signal.address);
+    });
+    it("should get enzyme whitelist policy address", async function () {
+      expect(await this.main.getWhitelistPolicyAddress()).to.be.equal(
+        this.whitelistPolicyAddress
+      );
+    });
+    it("should get enzyme policy address", async function () {
+      expect(await this.main.getPolicyAddress()).to.be.equal(
+        this.policymanager.address
+      );
+    });
+    it("should get enzyme tracked asset adapter address", async function () {
+      expect(await this.main.getTrackedAssetAddress()).to.be.equal(
+        this.trackedAssetAdapterAddress
+      );
+    });
+    it("should get enzyme integration manager address", async function () {
+      expect(await this.main.getIntegrationManagerAddress()).to.be.equal(
+        this.intmanager.address
+      );
+    });
+    it("should get enzyme deployer address", async function () {
+      expect(await this.main.getDeployerAddress()).to.be.equal(
+        this.funddeployer.address
+      );
+    });
+    it("should get enzyme comptroller address", async function () {
+      expect(await this.main.getComptrollerAddress()).to.not.be.null;
+    });
+    it("should get admin address", async function () {
+      expect(await this.main.getAdminAddress()).to.be.equal(this.admin.address);
+    });
+  });
+
+  describe("status getters", async function () {
+    it("should check if config has been initialized", async function () {
+      await this.intmanager.mock.addAuthUserForFund.returns();
+      await this.policymanager.mock.enablePolicyForFund.returns();
+      expect(await this.main.isConfigInitialized()).to.be.false;
+      await this.main.connect(this.admin).initializeFundConfig();
+      expect(await this.main.isConfigInitialized()).to.be.true;
+    });
   });
 });

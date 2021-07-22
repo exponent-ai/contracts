@@ -225,7 +225,7 @@ abstract contract XPNPortfolio {
 
         require(
             distanceImproved > 0 && valueLoss < expectedLoss,
-            "trade requirement not satisfy"
+            "trade requirement not satisfied"
         );
     }
 }
