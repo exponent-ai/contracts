@@ -16,11 +16,15 @@
 // along with Exponent.  If not, see <http://www.gnu.org/licenses/>.
 
 const { expect } = require("chai");
-const { bignumToStringArray, bignumToString } = require("./utils/bignum.js");
+const {
+  MAX_INT,
+  bignumToStringArray,
+  bignumToString,
+} = require("./utils/bignum.js");
 const { randomAddress } = require("./utils/address.js");
 
 describe("XPNPortfolio", function () {
-  describe("hapyy case", function () {
+  describe("happy case", function () {
     beforeEach(async function () {
       const Signal = await ethers.getContractFactory("XPNSignal");
       this.simpleSignal = await Signal.deploy();
@@ -35,7 +39,6 @@ describe("XPNPortfolio", function () {
       await this.tokenC.deployed();
 
       const SignalFund = await ethers.getContractFactory("XPNPortfolioSpy");
-      let mockAddress = "0x0000000000000000000000000000000000000000";
       this.signalFund = await SignalFund.deploy();
       await this.signalFund.deployed();
       await this.simpleSignal.registerSignal("testSignal1", "Simple", [
@@ -58,7 +61,7 @@ describe("XPNPortfolio", function () {
       await this.signalFund.setVaultAddress(this.vaultAddress);
     });
 
-    describe("viewPortfolio DATA", function () {
+    describe("viewPortfolio data", function () {
       it("PortfolioToken", async function () {
         expect(
           bignumToStringArray(await this.signalFund.viewPortfolioToken())
@@ -211,8 +214,6 @@ describe("XPNPortfolio", function () {
   describe("edge case", function () {
     // passing this.reallyBigInt256 to some function will cause some error.
     // for now: just use raw string - TODO: fix it
-    this.overflowIfAdded =
-      "55792089237316195423570985008687907853269984665640564039457584007913129639935";
     beforeEach(async function () {
       const Signal = await ethers.getContractFactory("XPNSignal");
       this.simpleSignal = await Signal.deploy();
@@ -227,7 +228,6 @@ describe("XPNPortfolio", function () {
       await this.tokenC.deployed();
 
       const SignalFund = await ethers.getContractFactory("XPNPortfolioSpy");
-      let mockAddress = "0x0000000000000000000000000000000000000000";
       this.signalFund = await SignalFund.deploy();
       await this.signalFund.deployed();
       await this.simpleSignal.registerSignal("testSignal1", "Simple", [
@@ -267,7 +267,6 @@ describe("XPNPortfolio", function () {
         await this.tokenC.deployed();
 
         const SignalFund = await ethers.getContractFactory("XPNPortfolioSpy");
-        let mockAddress = "0x0000000000000000000000000000000000000000";
         this.signalFund = await SignalFund.deploy();
         await this.signalFund.deployed();
         await this.simpleSignal.registerSignal("testSignal1", "Simple", [
@@ -290,13 +289,13 @@ describe("XPNPortfolio", function () {
         await this.signalFund.setVaultAddress(this.vaultAddress);
       });
 
-      it("viewPortfolioToken work normally", async function () {
+      it("viewPortfolioToken works normally", async function () {
         expect(
           bignumToStringArray(await this.signalFund.viewPortfolioToken())
         ).to.deep.equal(["0", "0", "0"]);
       });
 
-      it("viewPortfolioMixValue work normally", async function () {
+      it("viewPortfolioMixValue works normally", async function () {
         expect(
           bignumToStringArray(await this.signalFund.viewPortfolioMixValue())
         ).to.deep.equal(["0", "0", "0"]);
@@ -341,7 +340,6 @@ describe("XPNPortfolio", function () {
         await this.tokenC.deployed();
 
         const SignalFund = await ethers.getContractFactory("XPNPortfolioSpy");
-        let mockAddress = "0x0000000000000000000000000000000000000000";
         this.signalFund = await SignalFund.deploy();
         await this.signalFund.deployed();
         await this.simpleSignal.registerSignal("testSignal1", "Simple", [
@@ -352,11 +350,7 @@ describe("XPNPortfolio", function () {
         await this.simpleSignal.submitSignal(
           "testSignal1",
           ["TOA", "TOB", "TOC"],
-          [
-            "55792089237316195423570985008687907853269984665640564039457584007913129639935",
-            "55792089237316195423570985008687907853269984665640564039457584007913129639935",
-            "55792089237316195423570985008687907853269984665640564039457584007913129639935",
-          ],
+          [MAX_INT, MAX_INT, MAX_INT],
           "0x"
         );
 
@@ -376,13 +370,13 @@ describe("XPNPortfolio", function () {
           String(1e18),
         ]);
       });
-      it("viewPortfolioToken work normally", async function () {
+      it("viewPortfolioToken works normally", async function () {
         expect(
           bignumToStringArray(await this.signalFund.viewPortfolioToken())
         ).to.deep.equal(["10", "10", "10"]);
       });
 
-      it("viewPortfolioMixValue work normally", async function () {
+      it("viewPortfolioMixValue works normally", async function () {
         expect(
           bignumToStringArray(await this.signalFund.viewPortfolioMixValue())
         ).to.deep.equal(["10", "10", "10"]);
@@ -392,7 +386,7 @@ describe("XPNPortfolio", function () {
         await expect(this.signalFund.signalPortfolioDiffPercent()).to.be
           .reverted;
       });
-      it("viewPortfolioAllocation work normally", async function () {
+      it("viewPortfolioAllocation works normally", async function () {
         expect(
           bignumToStringArray(await this.signalFund.viewPortfolioAllocation())
         ).to.deep.equal([
@@ -433,7 +427,6 @@ describe("XPNPortfolio", function () {
         await this.tokenC.deployed();
 
         const SignalFund = await ethers.getContractFactory("XPNPortfolioSpy");
-        let mockAddress = "0x0000000000000000000000000000000000000000";
         this.signalFund = await SignalFund.deploy();
         await this.signalFund.deployed();
         await this.simpleSignal.registerSignal("testSignal1", "Simple", [
@@ -455,18 +448,9 @@ describe("XPNPortfolio", function () {
         this.vaultAddress = randomAddress();
         await this.signalFund.setVaultAddress(this.vaultAddress);
 
-        await this.tokenA.mintTo(
-          this.vaultAddress,
-          "55792089237316195423570985008687907853269984665640564039457584007913129639935"
-        );
-        await this.tokenB.mintTo(
-          this.vaultAddress,
-          "55792089237316195423570985008687907853269984665640564039457584007913129639935"
-        );
-        await this.tokenC.mintTo(
-          this.vaultAddress,
-          "55792089237316195423570985008687907853269984665640564039457584007913129639935"
-        );
+        await this.tokenA.mintTo(this.vaultAddress, MAX_INT);
+        await this.tokenB.mintTo(this.vaultAddress, MAX_INT);
+        await this.tokenC.mintTo(this.vaultAddress, MAX_INT);
         await this.signalFund.setTokensPrice([
           String(1e18),
           String(1e18),

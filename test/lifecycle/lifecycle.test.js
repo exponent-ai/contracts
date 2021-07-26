@@ -24,7 +24,7 @@ describe("XPN life cycle", function () {
           - seed balance
         deploy signal
           - deploy signal contract
-        deploy fund 
+        deploy fund
           - deploy XPN main
         create signal testsignal
           - register signal named 'testsignal'
@@ -39,14 +39,12 @@ describe("XPN life cycle", function () {
         deposit WETH
           - deposit WETH
         settle - trade 50% of WETH to USDC
-          - trade some WETH to USDC 
+          - trade some WETH to USDC
         withdraw fee
           - push evm time
           - withdraw fee (performance,management)
         withdraw from the vault
-          - withdraw some share 
-        
-        ref https://www.youtube.com/watch?v=GibiNy4d4gc 
+          - withdraw some share
     */
     before("set up test", async function () {
       await setSnapshot();
@@ -61,10 +59,10 @@ describe("XPN life cycle", function () {
         this.user1,
         this.user2,
         this.depositor,
-        this.singalProvider,
+        this.signalProvider,
       ] = await ethers.getSigners();
 
-      contracts = await initMainnetEnv();
+      const contracts = await initMainnetEnv();
 
       this.depositAmount = ethers.utils.parseUnits("50", 18);
 
@@ -78,7 +76,7 @@ describe("XPN life cycle", function () {
 
     it("deployment signal", async function () {
       const Signal = await ethers.getContractFactory("XPNSignal");
-      this.simpleSignal = await Signal.connect(this.singalProvider).deploy();
+      this.simpleSignal = await Signal.connect(this.signalProvider).deploy();
       await this.simpleSignal.deployed();
     });
 
@@ -134,13 +132,13 @@ describe("XPN life cycle", function () {
 
     it("create signal", async function () {
       await this.simpleSignal
-        .connect(this.singalProvider)
+        .connect(this.signalProvider)
         .registerSignal("testsignal", "Simple", ["WETH", "BTC", "USDC"]);
     });
 
     it("submit signal", async function () {
       await this.simpleSignal
-        .connect(this.singalProvider)
+        .connect(this.signalProvider)
         .submitSignal("testsignal", ["WETH", "BTC", "USDC"], [1, 0, 1], "0x");
     });
 
@@ -210,7 +208,6 @@ describe("XPN life cycle", function () {
     });
 
     it("trade settlement", async function () {
-      // TODO: make change
       this.timeout(100000);
       this.tradeAmount = "1804000000";
       const prewethbal = await contracts.WETH.balanceOf(

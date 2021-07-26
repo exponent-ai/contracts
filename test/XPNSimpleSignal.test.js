@@ -29,12 +29,12 @@ describe("Basic Signal", function () {
   });
 
   describe("register signal", function () {
-    it("can regiester a signal", async function () {
+    it("can register a signal", async function () {
       await this.simpleSignal
         .connect(this.signer1)
         .registerSignal("testsignal1", "Simple", ["BTC", "ETH", "XPN"]);
     });
-    it("can regiester a few different signal", async function () {
+    it("can register a few different signals", async function () {
       await this.simpleSignal
         .connect(this.signer1)
         .registerSignal("testsignal1", "Simple", ["BTC", "ETH", "XPN"]);
@@ -49,7 +49,7 @@ describe("Basic Signal", function () {
         .registerSignal("testsignal4", "Simple", ["BTC", "ETH", "XPN"]);
     });
 
-    it("can't register signal with the same name", async function () {
+    it("can't register a signal with the same name", async function () {
       await this.simpleSignal
         .connect(this.signer1)
         .registerSignal("testsignal1", "Simple", ["BTC", "ETH", "XPN"]);
@@ -81,7 +81,7 @@ describe("Basic Signal", function () {
   });
 
   describe("get signal", function () {
-    it("others user can get currect signal data", async function () {
+    it("other users can get correct signal data", async function () {
       await this.simpleSignal
         .connect(this.signer1)
         .registerSignal("testsignal1", "Simple", ["BTC", "ETH", "XPN"]);
@@ -94,7 +94,7 @@ describe("Basic Signal", function () {
         )
       ).to.be.deep.equal(["1", "2", "1"]);
     });
-    it("revert if signal not exist", async function () {
+    it("revert if signal does not exist", async function () {
       await expect(
         this.simpleSignal.connect(this.signer1).getSignal("ARandomName")
       ).to.be.reverted;
@@ -102,7 +102,7 @@ describe("Basic Signal", function () {
   });
 
   describe("withdraw signal", function () {
-    it("owner withdraw signal if exist", async function () {
+    it("owner can withdraw signal if exists", async function () {
       await this.simpleSignal
         .connect(this.signer1)
         .registerSignal("testsignal1", "Simple", ["BTC", "ETH", "XPN"]);
@@ -114,31 +114,31 @@ describe("Basic Signal", function () {
         .withdrawSignal("testsignal1");
     });
 
-    it("non-owner can't withdraw signal if exist", async function () {
+    it("non-owner can't withdraw signal if exists", async function () {
       await this.simpleSignal
         .connect(this.signer1)
-        .registerSignal("testSingal1", "Simple", ["BTC", "ETH", "XPN"]);
+        .registerSignal("testSignal1", "Simple", ["BTC", "ETH", "XPN"]);
       await this.simpleSignal
         .connect(this.signer1)
-        .submitSignal("testSingal1", ["BTC", "ETH", "USDT"], [1, 2, 1], "0x");
+        .submitSignal("testSignal1", ["BTC", "ETH", "USDT"], [1, 2, 1], "0x");
       await expect(
-        this.simpleSignal.connect(this.signer2).withdrawSignal("testSingal1")
+        this.simpleSignal.connect(this.signer2).withdrawSignal("testSignal1")
       ).to.be.reverted;
     });
 
-    it("can't get data from withdrawed signal", async function () {
+    it("can't get data from withdrawn signal", async function () {
       await this.simpleSignal
         .connect(this.signer1)
-        .registerSignal("testSingal1", "Simple", ["BTC", "ETH", "XPN"]);
+        .registerSignal("testSignal1", "Simple", ["BTC", "ETH", "XPN"]);
       await this.simpleSignal
         .connect(this.signer1)
-        .submitSignal("testSingal1", ["BTC", "ETH", "USDT"], [1, 2, 1], "0x");
-      await this.simpleSignal.connect(this.signer2).getSignal("testSingal1");
+        .submitSignal("testSignal1", ["BTC", "ETH", "USDT"], [1, 2, 1], "0x");
+      await this.simpleSignal.connect(this.signer2).getSignal("testSignal1");
       await this.simpleSignal
         .connect(this.signer1)
-        .withdrawSignal("testSingal1");
+        .withdrawSignal("testSignal1");
       await expect(
-        this.simpleSignal.connect(this.signer2).getSignal("testSingal1")
+        this.simpleSignal.connect(this.signer2).getSignal("testSignal1")
       ).to.be.reverted;
     });
   });
