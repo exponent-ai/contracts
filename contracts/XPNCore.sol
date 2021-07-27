@@ -301,7 +301,7 @@ contract XPNCore is XPNVault, XPNSettlement, XPNPortfolio {
 
     // @notice fetch token price for an asset
     // @dev we utilize Chainlink price feed interface to get current price data,
-    // in the case that the asset is not supported on Chainlink, 
+    // in the case that the asset is not supported on Chainlink,
     // we need to ensure that we interact with a custom adapter
     function _getTokenPrice(address _asset)
         internal
@@ -432,7 +432,7 @@ contract XPNCore is XPNVault, XPNSettlement, XPNPortfolio {
         return true;
     }
 
-    // @dev performs 2 actions: settle current fee on Enzyme vault and mint 
+    // @dev performs 2 actions: settle current fee on Enzyme vault and mint
     //      new shares to vault owner representing accrued fees
     function _redeemFeesHook(address _feeManager, address[] memory _fees)
         internal
