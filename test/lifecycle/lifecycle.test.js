@@ -62,13 +62,13 @@ describe("XPN life cycle", function () {
         this.signalProvider,
       ] = await ethers.getSigners();
 
-      const contracts = await initMainnetEnv();
+      this.contracts = await initMainnetEnv();
 
       this.depositAmount = ethers.utils.parseUnits("50", 18);
 
       await seedBalance({
         ticker: "WETH",
-        contract: contracts.WETH,
+        contract: this.contracts.WETH,
         to: this.depositor.address,
         amount: this.depositAmount,
       });
@@ -113,13 +113,13 @@ describe("XPN life cycle", function () {
         this.admin.address,
         this.settler.address,
         this.simpleSignal.address, // signal address
-        contracts.WETH.address,
+        this.contracts.WETH.address,
         "WETH",
-        contracts.ENZYME_DEPLOYER.address,
-        contracts.ENZYME_INT_MANAGER.address,
-        contracts.ENZYME_ASSET_ADAPTER.address,
-        contracts.ENZYME_POLICY_MANAGER.address, // policy manager // Missing for CONF
-        contracts.ENZYME_INVESTOR_WHITELIST.address, // investor whitelist  // Missing for CONF
+        this.contracts.ENZYME_DEPLOYER.address,
+        this.contracts.ENZYME_INT_MANAGER.address,
+        this.contracts.ENZYME_ASSET_ADAPTER.address,
+        this.contracts.ENZYME_POLICY_MANAGER.address, // policy manager // Missing for CONF
+        this.contracts.ENZYME_INVESTOR_WHITELIST.address, // investor whitelist  // Missing for CONF
         ethers.constants.AddressZero,
         ethers.constants.AddressZero,
         feeManagerConfigData,
@@ -200,7 +200,7 @@ describe("XPN life cycle", function () {
     });
 
     it("deposit", async function () {
-      await contracts.WETH.connect(this.depositor).approve(
+      await this.contracts.WETH.connect(this.depositor).approve(
         this.main.address,
         this.depositAmount
       );
@@ -210,26 +210,26 @@ describe("XPN life cycle", function () {
     it("trade settlement", async function () {
       this.timeout(100000);
       this.tradeAmount = "1804000000";
-      const prewethbal = await contracts.WETH.balanceOf(
+      const prewethbal = await this.contracts.WETH.balanceOf(
         this.main.getSharesAddress()
       );
-      const preusdcbal = await contracts.USDC.balanceOf(
+      const preusdcbal = await this.contracts.USDC.balanceOf(
         this.main.getSharesAddress()
       );
       const kyberArgs = kyberTakeOrderArgs({
-        incomingAsset: contracts.USDC.address,
+        incomingAsset: this.contracts.USDC.address,
         minIncomingAssetAmount: this.tradeAmount,
-        outgoingAsset: contracts.WETH.address,
+        outgoingAsset: this.contracts.WETH.address,
         outgoingAssetAmount: ethers.utils.parseEther("1"),
       });
       const kyberVenue = process.env.KYBER_ADDRESS;
       await this.main
         .connect(this.settler)
         .submitTradeOrders(Array.of(kyberArgs), Array.of(kyberVenue));
-      const postwethbal = await contracts.WETH.balanceOf(
+      const postwethbal = await this.contracts.WETH.balanceOf(
         this.main.getSharesAddress()
       );
-      const postusdcbal = await contracts.USDC.balanceOf(
+      const postusdcbal = await this.contracts.USDC.balanceOf(
         this.main.getSharesAddress()
       );
       expect(prewethbal).to.be.above(postwethbal);
@@ -248,18 +248,18 @@ describe("XPN life cycle", function () {
     });
 
     it("withdraw principle", async function () {
-      var preWETH = await contracts.WETH.balanceOf(this.depositor.address);
-      var preUSDC = await contracts.USDC.balanceOf(this.depositor.address);
+      var preWETH = await this.contracts.WETH.balanceOf(this.depositor.address);
+      var preUSDC = await this.contracts.USDC.balanceOf(this.depositor.address);
 
       await this.main
         .connect(this.depositor)
         .withdraw(ethers.utils.parseUnits("50", 18));
 
       expect(
-        await contracts.WETH.balanceOf(this.depositor.address)
+        await this.contracts.WETH.balanceOf(this.depositor.address)
       ).to.be.above(preWETH);
       expect(
-        await contracts.USDC.balanceOf(this.depositor.address)
+        await this.contracts.USDC.balanceOf(this.depositor.address)
       ).to.be.above(preUSDC);
     });
   });

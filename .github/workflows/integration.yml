@@ -1,9 +1,6 @@
 name: Integration Test
 
 on:
-  push:
-    branches:
-      - develop
   pull_request:
     branches:
       - develop
@@ -26,6 +23,14 @@ jobs:
           sed -i "s/<API_KEY>/$ALCHEMY_APIKEY/g" .env
         env:
           ALCHEMY_APIKEY: ${{ secrets.ALCHEMY_APIKEY }}
+      - name: Cache Hardhat Fork 📮
+        uses: actions/cache@v2
+        with:
+          path: cache/hardhat-network-fork
+          key: fork-${{ hashFiles('env.sample') }}
+          restore-keys: |
+            fork-${{ hashFiles('env.sample') }}
+            fork-
       - name: Test 🚨
         run: npm run -s test:integration:report
       - name: Test Report 📝
