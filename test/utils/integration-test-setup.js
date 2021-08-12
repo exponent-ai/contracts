@@ -1,57 +1,7 @@
 require("dotenv").config();
 const hre = require("hardhat");
 const ethers = hre.ethers;
-
-const contracts = [
-  { name: "USDC", address: process.env.USDC_ADDRESS, abi: "ERC20" },
-  { name: "WETH", address: process.env.WETH_ADDRESS, abi: "ERC20" },
-  {
-    name: "ORACLE_USDC_ETH",
-    address: process.env.ORACLE_USDC_WETH,
-    abi: "AggregatorV3Interface",
-  },
-  {
-    name: "ENZYME_DEPLOYER",
-    address: process.env.ENZYME_DEPLOYER,
-    abi: "IFundDeployer",
-  },
-  {
-    name: "ENZYME_COMPTROLLER",
-    address: process.env.ENZYME_COMPTROLLER,
-    abi: "IComptroller",
-  },
-  {
-    name: "ENZYME_INT_MANAGER",
-    address: process.env.ENZYME_INT_MANAGER,
-    abi: "IIntegrationManager",
-  },
-  {
-    name: "ENZYME_ASSET_ADAPTER",
-    address: process.env.ENZYME_ASSET_ADAPTER,
-    abi: "ITrackedAssetAdapter",
-  },
-  {
-    name: "ENZYME_POLICY_MANAGER",
-    address: process.env.ENZYME_POLICY_MANAGER,
-    abi: "IPolicyManager",
-  },
-  {
-    name: "ENZYME_INVESTOR_WHITELIST",
-    address: process.env.ENZYME_INVESTOR_WHITELIST,
-  },
-  {
-    name: "ENZYME_AAVE_ADAPTER",
-    address: process.env.ENZYME_AAVE_ADAPTER,
-  },
-  {
-    name: "ENZYME_DISPATCHER",
-    address: process.env.ENZYME_DISPATCHER,
-  },
-  {
-    name: "AUSDC",
-    address: process.env.AUSDC_ADDRESS,
-  },
-];
+const { contracts, wallets, transactions } = require("./integration-config.js");
 
 async function initMainnetEnv() {
   const loadedContracts = contracts.map(async function (contract) {
@@ -67,7 +17,16 @@ async function initMainnetEnv() {
     }
   });
   const gotContracts = await Promise.all(loadedContracts);
-  return Object.fromEntries(gotContracts);
+  const gotWallets = wallets.map((wallet) => [
+    wallet.name,
+    { address: wallet.address },
+  ]);
+  const gotTransactions = transactions.map((tx) => [tx.name, tx.hash]);
+  return [
+    Object.fromEntries(gotContracts),
+    Object.fromEntries(gotWallets),
+    Object.fromEntries(gotTransactions),
+  ];
 }
 
 async function cleanUp({ tokens, users }) {
@@ -83,8 +42,8 @@ async function cleanUp({ tokens, users }) {
 
 async function seedBalance({ ticker, contract, to, amount }) {
   const faucetAddresses = {
-    WETH: "0x56178a0d5f301baf6cf3e1cd53d9863437345bf9",
-    USDC: "0xab7677859331f95f25a3e7799176f7239feb5c44",
+    WETH: process.env.WETH_FAUCET,
+    USDC: process.env.USDC_FAUCET,
   };
   try {
     const faucetAddress = faucetAddresses[ticker];

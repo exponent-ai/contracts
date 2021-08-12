@@ -18,7 +18,7 @@ describe("XPNSettlement", function () {
     await setSnapshot();
 
     [this.signer] = await ethers.getSigners();
-    contracts = await initMainnetEnv();
+    [contracts] = await initMainnetEnv();
     this.testVault = process.env.TEST_VAULT;
     this.testComptroller = process.env.TEST_COMPTROLLER;
 

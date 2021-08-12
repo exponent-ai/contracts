@@ -17,9 +17,9 @@ const {
 } = require("@enzymefinance/protocol");
 
 describe("XPN life cycle", function () {
+  let contracts;
   describe("XPN happy path", function () {
-    /*
-        set up
+    /* set up
           - set up env
           - seed balance
         deploy signal
@@ -62,7 +62,7 @@ describe("XPN life cycle", function () {
         this.signalProvider,
       ] = await ethers.getSigners();
 
-      this.contracts = await initMainnetEnv();
+      [contracts] = await initMainnetEnv();
 
       this.depositAmount = ethers.utils.parseUnits("50", 18);
 
@@ -74,13 +74,13 @@ describe("XPN life cycle", function () {
       });
     });
 
-    it("deployment signal", async function () {
+    it("deploy signal", async function () {
       const Signal = await ethers.getContractFactory("XPNSignal");
       this.simpleSignal = await Signal.connect(this.signalProvider).deploy();
       await this.simpleSignal.deployed();
     });
 
-    it("deployment fund", async function () {
+    it("deploy fund", async function () {
       const Util = await ethers.getContractFactory("XPNUtils");
       this.util = await Util.deploy();
       await this.util.deployed();
@@ -103,8 +103,8 @@ describe("XPN life cycle", function () {
       });
       const feeManagerConfigData = feeManagerConfigArgs({
         fees: [
-          "0x889f2FCB6c12d836cB8f7567A1bdfa512FE9f647",
-          "0x70478df01108Cb2fCB23463814e648363CE17720",
+          contracts.ENZYME_MANAGEMENT_FEE.address,
+          contracts.ENZYME_PERFORMANCE_FEE.address,
         ],
         settings: [managementFeeSettings, performanceFeeConfig],
       });
@@ -143,23 +143,21 @@ describe("XPN life cycle", function () {
     });
 
     it("set asset whitelist", async function () {
-      // chainlink ETH/BTC: 0xdeb288F737066589598e9214E782fa5A8eD689e8
-      // USDC/ETH: 	0x986b5E1e1755e3C2440e960477f25201B0a8bbD4
       this.assetWhitelisterRole = ethers.utils.keccak256(
         ethers.utils.toUtf8Bytes("ASSET_WHITELIST_ROLE")
       );
       await this.main
         .connect(this.admin)
         .grantRole(this.assetWhitelisterRole, this.assetWhitelister.address);
-      const btcAddress = "0x2260fac5e5542a773aa44fbcfedf7c193bc2c599";
-      const btcETHFeed = "0xdeb288F737066589598e9214E782fa5A8eD689e8";
+      const btcAddress = contracts.WBTC.address;
+      const btcETHFeed = contracts.ORACLE_WBTC_ETH.address;
       await this.main
         .connect(this.assetWhitelister)
         .addAssetFeedConfig("BTC", btcAddress, btcETHFeed);
 
       await this.main.connect(this.assetWhitelister).whitelistAsset(btcAddress);
-      const usdcAddress = "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48";
-      const usdcETHFeed = "0x986b5E1e1755e3C2440e960477f25201B0a8bbD4";
+      const usdcAddress = contracts.USDC.address;
+      const usdcETHFeed = contracts.ORACLE_USDC_ETH.address;
       await this.main
         .connect(this.assetWhitelister)
         .addAssetFeedConfig("USDC", usdcAddress, usdcETHFeed);
@@ -167,8 +165,8 @@ describe("XPN life cycle", function () {
         .connect(this.assetWhitelister)
         .whitelistAsset(usdcAddress);
 
-      const wethAddress = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2";
-      const wethFeed = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2";
+      const wethAddress = contracts.WETH.address;
+      const wethFeed = contracts.WETH.address;
       await this.main
         .connect(this.assetWhitelister)
         .addAssetFeedConfig("WETH", wethAddress, randomAddress());
@@ -241,9 +239,9 @@ describe("XPN life cycle", function () {
       await ethers.provider.send("evm_mine");
       await this.main
         .connect(this.admin)
-        .redeemFees("0xEcDbcdB8Dbf0AC54f47E41D3DD0C7DaE07828aAa", [
-          "0x889f2FCB6c12d836cB8f7567A1bdfa512FE9f647",
-          "0x70478df01108Cb2fCB23463814e648363CE17720",
+        .redeemFees(contracts.ENZYME_FEE_MANAGER.address, [
+          contracts.ENZYME_MANAGEMENT_FEE.address,
+          contracts.ENZYME_PERFORMANCE_FEE.address,
         ]);
     });
 

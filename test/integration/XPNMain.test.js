@@ -20,7 +20,7 @@ describe("XPNMain", function () {
       this.depositor,
       this.venueWhitelister,
     ] = await ethers.getSigners();
-    contracts = await initMainnetEnv();
+    [contracts] = await initMainnetEnv();
     const Util = await ethers.getContractFactory("XPNUtils");
     this.util = await Util.deploy();
     await this.util.deployed();

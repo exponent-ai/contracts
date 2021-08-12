@@ -17,11 +17,13 @@ const {
 
 describe("XPNCore", function () {
   let contracts;
+  let wallets;
+  let transactions;
   beforeEach("deploy contract", async function () {
     await setSnapshot();
     [this.deployer, this.settler, this.settler2, this.admin, this.depositor] =
       await ethers.getSigners();
-    contracts = await initMainnetEnv();
+    [contracts, wallets, transactions] = await initMainnetEnv();
     const Util = await ethers.getContractFactory("XPNUtils");
     this.util = await Util.deploy();
     await this.util.deployed();
@@ -95,12 +97,9 @@ describe("XPNCore", function () {
   describe("Vault migration", async function () {
     it("should perform vault migration successfully", async function () {
       // deploy a new FundDeployer contract
-      const deployerTxHash =
-        "0xefac33ba5f88ff10bfaa0e85cd8676f409ce9f505a4afe84c2a5cd8c6269511d";
+      const deployerTxHash = transactions.ENZYME_DEPLOYER_DEPLOYMENT;
       const comptrollerLibTxHash =
-        "0xc3273d286633e56fb5f7534f16713fae347f84dc65a43bf9906f0fd2c5306b10";
-      const deployerTransaction =
-        "0xefac33ba5f88ff10bfaa0e85cd8676f409ce9f505a4afe84c2a5cd8c6269511d";
+        transactions.ENZYME_COMPTROLLERLIB_DEPLOYMENT;
 
       const newDeployer = await getDeployedContractBytes(
         deployerTxHash,
@@ -112,13 +111,14 @@ describe("XPNCore", function () {
       // // NOTE here we have to modify ComptrollerLib contract data
       // // comptroller lib has a hardcoded address on deployment, here we simply replace old
       // // fund deployer address with our new fund deployer
+      const oldDeployerAddress = contracts.ENZYME_DEPLOYER.address;
       const newComptrollerLib = await getDeployedContractBytes(
         comptrollerLibTxHash,
         "IComptroller",
         this.deployer,
         function (bytes) {
           return bytes.replace(
-            contracts.ENZYME_DEPLOYER.address.toLowerCase().replace("0x", ""),
+            oldDeployerAddress.toLowerCase().replace("0x", ""),
             newDeployer.address.replace("0x", "")
           );
         }
@@ -144,8 +144,7 @@ describe("XPNCore", function () {
         "EX-ETH",
       ];
 
-      const enzymeDispatcherOwner =
-        "0xb270fe91e8e4b80452fbf1b4704208792a350f53";
+      const enzymeDispatcherOwner = wallets.ENZYME_DISPATCHER_OWNER.address;
 
       // NOTE now we begin the process to set up the new release
       // impersonate dispatcher's owner to setCurrentFundDeployer to our new contract

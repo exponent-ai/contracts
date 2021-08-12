@@ -19,7 +19,7 @@ describe("XPNVault", function () {
       await setSnapshot();
       [this.depositor1, this.depositor2, this.admin] =
         await ethers.getSigners();
-      contracts = await initMainnetEnv();
+      [contracts] = await initMainnetEnv();
       this.depositAmount = ethers.utils.parseUnits("50", 18);
       await seedBalance({
         ticker: "WETH",
@@ -69,7 +69,7 @@ describe("XPNVault", function () {
     });
 
     after("clean up", async function () {
-      const { WETH } = await initMainnetEnv();
+      const [{ WETH }] = await initMainnetEnv();
       const [deployer] = await ethers.getSigners();
       await cleanUp({ tokens: [WETH], users: [deployer] });
     });
@@ -205,7 +205,7 @@ describe("XPNVault", function () {
         await setSnapshot();
         [this.depositor1, this.depositor2, this.admin] =
           await ethers.getSigners();
-        contracts = await initMainnetEnv();
+        [contracts] = await initMainnetEnv();
         this.depositAmount = ethers.utils.parseUnits("50", 18);
         await seedBalance({
           ticker: "WETH",
@@ -230,10 +230,11 @@ describe("XPNVault", function () {
           rate: performanceFeeRate,
           period: performanceFeePeriod,
         });
+
         const feeManagerConfigData = feeManagerConfigArgs({
           fees: [
-            "0x889f2FCB6c12d836cB8f7567A1bdfa512FE9f647",
-            "0x70478df01108Cb2fCB23463814e648363CE17720",
+            contracts.ENZYME_MANAGEMENT_FEE.address,
+            contracts.ENZYME_PERFORMANCE_FEE.address,
           ],
           settings: [managementFeeSettings, performanceFeeConfig],
         });
@@ -257,7 +258,7 @@ describe("XPNVault", function () {
       });
 
       after("clean up", async function () {
-        const { WETH } = await initMainnetEnv();
+        const [{ WETH }] = await initMainnetEnv();
         const [deployer] = await ethers.getSigners();
         await cleanUp({ tokens: [WETH], users: [deployer] });
       });
@@ -273,10 +274,10 @@ describe("XPNVault", function () {
 
         // redeem both management and performance fees
         await this.vaultConsumer.redeemFees(
-          "0xEcDbcdB8Dbf0AC54f47E41D3DD0C7DaE07828aAa",
+          contracts.ENZYME_FEE_MANAGER.address,
           [
-            "0x889f2FCB6c12d836cB8f7567A1bdfa512FE9f647",
-            "0x70478df01108Cb2fCB23463814e648363CE17720",
+            contracts.ENZYME_MANAGEMENT_FEE.address,
+            contracts.ENZYME_PERFORMANCE_FEE.address,
           ]
         );
         const sharesbal = await contracts.shares.balanceOf(

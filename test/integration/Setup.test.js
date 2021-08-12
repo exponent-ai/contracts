@@ -9,7 +9,7 @@ const {
 
 describe("integration test setup", function () {
   after("clean up", async function () {
-    const { WETH } = await initMainnetEnv();
+    const [{ WETH }] = await initMainnetEnv();
     const [deployer] = await ethers.getSigners();
     await cleanUp({ tokens: [WETH], users: [deployer] });
   });
@@ -22,13 +22,13 @@ describe("integration test setup", function () {
   });
 
   it("initMainnetEnv", async function () {
-    const { USDC, WETH } = await initMainnetEnv();
+    const [{ WETH, USDC }] = await initMainnetEnv();
     expect(await WETH.symbol()).to.be.equal("WETH");
     expect(await USDC.symbol()).to.be.equal("USDC");
   });
 
   it("seedBalance", async function () {
-    const { WETH } = await initMainnetEnv();
+    const [{ WETH }] = await initMainnetEnv();
     const [deployer] = await ethers.getSigners();
     await seedBalance({
       ticker: "WETH",
