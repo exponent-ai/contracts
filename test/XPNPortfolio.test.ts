@@ -15,13 +15,11 @@
 // You should have received a copy of the GNU General Public License
 // along with Exponent.  If not, see <http://www.gnu.org/licenses/>.
 
-const { expect } = require("chai");
-const {
-  MAX_INT,
-  bignumToStringArray,
-  bignumToString,
-} = require("./utils/bignum.js");
-const { randomAddress } = require("./utils/address.js");
+import { ethers, waffle, artifacts } from "hardhat";
+import { expect } from "chai";
+const { deployMockContract } = waffle;
+import { randomAddress } from "./utils/address";
+import { MAX_INT, bignumToStringArray, bignumToString } from "./utils/bignum";
 
 describe("XPNPortfolio", function () {
   describe("happy case", function () {

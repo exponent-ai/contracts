@@ -15,13 +15,13 @@
 // You should have received a copy of the GNU General Public License
 // along with Exponent.  If not, see <http://www.gnu.org/licenses/>.
 
-const { expect } = require("chai");
-const { bignumToStringArray, bignumToString } = require("./utils/bignum.js");
+import { ethers } from "hardhat";
+import { expect } from "chai";
+import { bignumToStringArray, bignumToString } from "./utils/bignum";
 
 describe("Basic Signal", function () {
   beforeEach(async function () {
-    this.signer1 = await ethers.getSigner(0);
-    this.signer2 = await ethers.getSigner(1);
+    [this.signer1, this.signer2] = await ethers.getSigners();
 
     const Signal = await ethers.getContractFactory("XPNSignal");
     this.simpleSignal = await Signal.deploy();

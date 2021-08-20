@@ -15,8 +15,9 @@
 // You should have received a copy of the GNU General Public License
 // along with Exponent.  If not, see <http://www.gnu.org/licenses/>.
 
-const { expect } = require("chai");
-const { bignumToStringArray } = require("./utils/bignum.js");
+import { ethers } from "hardhat";
+import { expect } from "chai";
+import { bignumToStringArray } from "./utils/bignum";
 
 describe("SignalMath", function () {
   beforeEach(async function () {

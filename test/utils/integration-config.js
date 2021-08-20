@@ -15,6 +15,10 @@ const contracts = [
     abi: "AggregatorV3Interface",
   },
   {
+    name: "KYBER",
+    address: process.env.KYBER_ADDRESS,
+  },
+  {
     name: "ENZYME_DEPLOYER",
     address: process.env.ENZYME_DEPLOYER,
     abi: "IFundDeployer",

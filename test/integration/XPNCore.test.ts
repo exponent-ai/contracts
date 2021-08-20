@@ -1,29 +1,46 @@
-require("dotenv").config();
-const { expect } = require("chai");
-const {
-  seedBalance,
-  initMainnetEnv,
-  cleanUp,
-  setSnapshot,
-  getDeployedContractBytes,
-} = require("../utils/integration-test-setup.js");
-const {
+// Copyright (C) 2021 Exponent
+
+// This file is part of Exponent.
+
+// Exponent is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+
+// Exponent is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with Exponent.  If not, see <http://www.gnu.org/licenses/>.
+
+import * as dotenv from "dotenv";
+import { ethers, network } from "hardhat";
+import { expect } from "chai";
+import {
   managementFeeConfigArgs,
   feeManagerConfigArgs,
   performanceFeeConfigArgs,
   validateRulePreBuySharesArgs,
   convertRateToScaledPerSecondRate,
-} = require("@enzymefinance/protocol");
+} from "@enzymefinance/protocol";
+import {
+  seedBalance,
+  initMainnetEnv,
+  cleanUp,
+  setSnapshot,
+  getDeployedContractBytes,
+} from "../utils/integration-test-setup";
+
+dotenv.config();
 
 describe("XPNCore", function () {
-  let contracts;
-  let wallets;
-  let transactions;
   beforeEach("deploy contract", async function () {
     await setSnapshot();
     [this.deployer, this.settler, this.settler2, this.admin, this.depositor] =
       await ethers.getSigners();
-    [contracts, wallets, transactions] = await initMainnetEnv();
+    [this.contracts, this.wallets, this.transactions] = await initMainnetEnv();
     const Util = await ethers.getContractFactory("XPNUtils");
     this.util = await Util.deploy();
     await this.util.deployed();
@@ -43,13 +60,13 @@ describe("XPNCore", function () {
       this.admin.address,
       this.settler.address,
       this.simpleSignal.address, // signal address
-      contracts.WETH.address,
+      this.contracts.WETH.address,
       "ETH",
-      contracts.ENZYME_DEPLOYER.address,
-      contracts.ENZYME_INT_MANAGER.address,
-      contracts.ENZYME_ASSET_ADAPTER.address,
-      contracts.ENZYME_POLICY_MANAGER.address, // policy manager
-      contracts.ENZYME_INVESTOR_WHITELIST.address, // investor whitelist
+      this.contracts.ENZYME_DEPLOYER.address,
+      this.contracts.ENZYME_INT_MANAGER.address,
+      this.contracts.ENZYME_ASSET_ADAPTER.address,
+      this.contracts.ENZYME_POLICY_MANAGER.address, // policy manager
+      this.contracts.ENZYME_INVESTOR_WHITELIST.address, // investor whitelist
       ethers.constants.AddressZero,
       ethers.constants.AddressZero,
       [],
@@ -82,24 +99,28 @@ describe("XPNCore", function () {
       await this.core.initializeFundConfig();
       const sharesAddress = await this.core.getSharesAddress();
       const shares = await ethers.getContractAt("IShares", sharesAddress);
-      await this.core.addTrackedAsset(contracts.USDC.address);
-      expect(await shares.isTrackedAsset(contracts.WETH.address)).to.be.true;
-      expect(await shares.isTrackedAsset(contracts.USDC.address)).to.be.true;
+      await this.core.addTrackedAsset(this.contracts.USDC.address);
+      expect(await shares.isTrackedAsset(this.contracts.WETH.address)).to.be
+        .true;
+      expect(await shares.isTrackedAsset(this.contracts.USDC.address)).to.be
+        .true;
     });
     it("should remove tracked asset", async function () {
       const sharesAddress = await this.core.getSharesAddress();
       const shares = await ethers.getContractAt("IShares", sharesAddress);
-      await this.core.removeTrackedAsset(contracts.USDC.address);
-      expect(await shares.isTrackedAsset(contracts.WETH.address)).to.be.true;
-      expect(await shares.isTrackedAsset(contracts.USDC.address)).to.be.false;
+      await this.core.removeTrackedAsset(this.contracts.USDC.address);
+      expect(await shares.isTrackedAsset(this.contracts.WETH.address)).to.be
+        .true;
+      expect(await shares.isTrackedAsset(this.contracts.USDC.address)).to.be
+        .false;
     });
   });
   describe("Vault migration", async function () {
     it("should perform vault migration successfully", async function () {
       // deploy a new FundDeployer contract
-      const deployerTxHash = transactions.ENZYME_DEPLOYER_DEPLOYMENT;
+      const deployerTxHash = this.transactions.ENZYME_DEPLOYER_DEPLOYMENT;
       const comptrollerLibTxHash =
-        transactions.ENZYME_COMPTROLLERLIB_DEPLOYMENT;
+        this.transactions.ENZYME_COMPTROLLERLIB_DEPLOYMENT;
 
       const newDeployer = await getDeployedContractBytes(
         deployerTxHash,
@@ -111,12 +132,12 @@ describe("XPNCore", function () {
       // // NOTE here we have to modify ComptrollerLib contract data
       // // comptroller lib has a hardcoded address on deployment, here we simply replace old
       // // fund deployer address with our new fund deployer
-      const oldDeployerAddress = contracts.ENZYME_DEPLOYER.address;
+      const oldDeployerAddress = this.contracts.ENZYME_DEPLOYER.address;
       const newComptrollerLib = await getDeployedContractBytes(
         comptrollerLibTxHash,
         "IComptroller",
         this.deployer,
-        function (bytes) {
+        function (bytes: string) {
           return bytes.replace(
             oldDeployerAddress.toLowerCase().replace("0x", ""),
             newDeployer.address.replace("0x", "")
@@ -131,24 +152,25 @@ describe("XPNCore", function () {
         this.admin.address,
         this.settler.address,
         this.simpleSignal.address,
-        contracts.WETH.address,
+        this.contracts.WETH.address,
         "ETH",
         newDeployer.address, // our new fund deployer contract
-        contracts.ENZYME_INT_MANAGER.address,
-        contracts.ENZYME_ASSET_ADAPTER.address,
-        contracts.ENZYME_POLICY_MANAGER.address,
-        contracts.ENZYME_INVESTOR_WHITELIST.address,
+        this.contracts.ENZYME_INT_MANAGER.address,
+        this.contracts.ENZYME_ASSET_ADAPTER.address,
+        this.contracts.ENZYME_POLICY_MANAGER.address,
+        this.contracts.ENZYME_INVESTOR_WHITELIST.address,
         ethers.constants.AddressZero,
         ethers.constants.AddressZero,
         [],
         "EX-ETH",
       ];
 
-      const enzymeDispatcherOwner = wallets.ENZYME_DISPATCHER_OWNER.address;
+      const enzymeDispatcherOwner =
+        this.wallets.ENZYME_DISPATCHER_OWNER.address;
 
       // NOTE now we begin the process to set up the new release
       // impersonate dispatcher's owner to setCurrentFundDeployer to our new contract
-      await hre.network.provider.request({
+      await network.provider.request({
         method: "hardhat_impersonateAccount",
         params: [enzymeDispatcherOwner],
       });
@@ -170,7 +192,7 @@ describe("XPNCore", function () {
       ]);
 
       const dispatcher = new ethers.Contract(
-        contracts.ENZYME_DISPATCHER.address,
+        this.contracts.ENZYME_DISPATCHER.address,
         dispatcherInterface,
         dispatcherOwner
       );
@@ -186,7 +208,7 @@ describe("XPNCore", function () {
       // set the current the newest release on dispatcher as our new fund deployer
       await dispatcher.setCurrentFundDeployer(newDeployer.address);
 
-      await hre.network.provider.request({
+      await network.provider.request({
         method: "hardhat_stopImpersonatingAccount",
         params: [enzymeDispatcherOwner],
       });
@@ -196,14 +218,14 @@ describe("XPNCore", function () {
 
       await seedBalance({
         ticker: "WETH",
-        contract: contracts.WETH,
+        contract: this.contracts.WETH,
         to: this.depositor.address,
         amount: depositAmount,
       });
 
       await this.core.initializeFundConfig();
 
-      await contracts.WETH.connect(this.depositor).approve(
+      await this.contracts.WETH.connect(this.depositor).approve(
         this.core.address,
         approveAmount
       );
@@ -224,7 +246,7 @@ describe("XPNCore", function () {
 
       await this.core.connect(this.depositor).withdraw(depositAmount); //withdrawal should still work
       expect(
-        await contracts.WETH.balanceOf(this.depositor.address)
+        await this.contracts.WETH.balanceOf(this.depositor.address)
       ).to.be.equal(depositAmount);
 
       const migrationTime = await dispatcher.getMigrationTimelock();
@@ -232,7 +254,7 @@ describe("XPNCore", function () {
       await ethers.provider.send("evm_increaseTime", [
         migrationTime.toNumber(),
       ]);
-      await ethers.provider.send("evm_mine");
+      await ethers.provider.send("evm_mine", []);
       await expect(this.core.executeMigration()).to.emit(
         this.core,
         "MigrationExecuted"
@@ -242,7 +264,7 @@ describe("XPNCore", function () {
 
       await this.core.connect(this.depositor).withdraw(depositAmount); //withdrawal should still work
       expect(
-        await contracts.WETH.balanceOf(this.depositor.address)
+        await this.contracts.WETH.balanceOf(this.depositor.address)
       ).to.be.equal(depositAmount);
     });
   });

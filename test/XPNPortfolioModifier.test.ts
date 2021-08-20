@@ -15,8 +15,9 @@
 // You should have received a copy of the GNU General Public License
 // along with Exponent.  If not, see <http://www.gnu.org/licenses/>.
 
-const { expect } = require("chai");
-const { padZeros } = require("./utils/bignum");
+import { ethers } from "hardhat";
+import { expect } from "chai";
+import { padZeros } from "./utils/bignum";
 
 describe("XPNPortfolioModifier", function () {
   describe("ensureTrade", async function () {

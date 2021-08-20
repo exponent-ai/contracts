@@ -1,11 +1,14 @@
-require("dotenv").config();
-const { expect } = require("chai");
-const {
+import * as dotenv from "dotenv";
+import { ethers } from "hardhat";
+import { expect } from "chai";
+import {
   seedBalance,
   initMainnetEnv,
   cleanUp,
   setSnapshot,
-} = require("../utils/integration-test-setup.js");
+} from "../utils/integration-test-setup";
+
+dotenv.config();
 
 describe("integration test setup", function () {
   after("clean up", async function () {
@@ -17,7 +20,7 @@ describe("integration test setup", function () {
   it("setSnapshot", async function () {
     await setSnapshot();
     expect(await ethers.provider.getBlockNumber()).to.be.equal(
-      parseInt(process.env.BLOCK_NUMBER)
+      parseInt(process.env.BLOCK_NUMBER as string)
     );
   });
 

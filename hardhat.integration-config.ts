@@ -1,18 +1,16 @@
-require("dotenv").config();
-require("hardhat-gas-reporter");
-require("@nomiclabs/hardhat-waffle");
-require("@nomiclabs/hardhat-solhint");
-require("hardhat-tracer");
+import "tsconfig-paths/register";
+import * as dotenv from "dotenv";
+import { HardhatUserConfig } from "hardhat/config";
+import "@nomiclabs/hardhat-ethers";
+import "@nomiclabs/hardhat-waffle";
+import "@nomiclabs/hardhat-solhint";
+import { task } from "hardhat/config";
+import "hardhat-gas-reporter";
+import "hardhat-abi-exporter";
+import "solidity-coverage";
+import "hardhat-tracer";
 
-// This is a sample Hardhat task. To learn how to create your own go to
-// https://hardhat.org/guides/create-task.html
-task("accounts", "Prints the list of accounts", async () => {
-  const accounts = await ethers.getSigners();
-
-  for (const account of accounts) {
-    console.log(account.address);
-  }
-});
+dotenv.config();
 
 // You need to export an object to set up your config
 // Go to https://hardhat.org/config/ to learn more
@@ -20,12 +18,13 @@ task("accounts", "Prints the list of accounts", async () => {
 /**
  * @type import('hardhat/config').HardhatUserConfig
  */
+
 module.exports = {
   networks: {
     hardhat: {
       forking: {
         url: process.env.ETH_RPC,
-        blocknumber: parseInt(process.env.BLOCK_NUMBER),
+        blocknumber: parseInt(process.env.BLOCK_NUMBER as string),
       },
     },
   },

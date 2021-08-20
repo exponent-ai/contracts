@@ -15,13 +15,14 @@
 // You should have received a copy of the GNU General Public License
 // along with Exponent.  If not, see <http://www.gnu.org/licenses/>.
 
-const { expect } = require("chai");
-const {
+import { ethers } from "hardhat";
+import { expect } from "chai";
+import {
   kyberTakeOrderArgs,
   aaveLendArgs,
   aaveRedeemArgs,
-} = require("@enzymefinance/protocol");
-const { randomAddress } = require("./utils/address.js");
+} from "@enzymefinance/protocol";
+import { randomAddress } from "./utils/address";
 
 describe("XPNSettlement", function () {
   beforeEach(async function () {
@@ -77,7 +78,7 @@ describe("XPNSettlement", function () {
       await this.tradesettlement.setIsWhitelist(true);
       await this.tradesettlement.setReturnMsg(true);
       await this.tradesettlement.submitTradeOrders(
-        ...Object.values(this.order).map((arg) =>
+        ...Object.values(this.order).map((arg: any) =>
           Array.of(...arg, ...arg, ...arg)
         ) // submits 3 trades
       );

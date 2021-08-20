@@ -15,11 +15,10 @@
 // You should have received a copy of the GNU General Public License
 // along with Exponent.  If not, see <http://www.gnu.org/licenses/>.
 
-require("dotenv").config();
-const { randomAddress } = require("./utils/address.js");
-const { waffle } = require("hardhat");
+import { ethers, waffle, artifacts } from "hardhat";
+import { expect } from "chai";
 const { deployMockContract } = waffle;
-const { expect } = require("chai");
+import { randomAddress } from "./utils/address";
 
 describe("XPNMain", function () {
   beforeEach(async function () {
@@ -34,30 +33,30 @@ describe("XPNMain", function () {
       this.user2,
     ] = await ethers.getSigners();
     this.mockAddress = randomAddress();
-    const MockToken = await hre.artifacts.readArtifact("IERC20");
+    const MockToken = await artifacts.readArtifact("IERC20");
     this.shares = await deployMockContract(this.deployer, MockToken.abi);
     this.weth = await deployMockContract(this.deployer, MockToken.abi);
 
     // deploy integration manager mock
-    const Intmanager = await hre.artifacts.readArtifact("IIntegrationManager");
+    const Intmanager = await artifacts.readArtifact("IIntegrationManager");
     this.intmanager = await deployMockContract(this.deployer, Intmanager.abi);
     // deploy policy manager mock
-    const Policymanager = await hre.artifacts.readArtifact("IPolicyManager");
+    const Policymanager = await artifacts.readArtifact("IPolicyManager");
     this.policymanager = await deployMockContract(
       this.deployer,
       Policymanager.abi
     );
     // deploy comptroller mock
-    const Comptroller = await hre.artifacts.readArtifact("IComptroller");
+    const Comptroller = await artifacts.readArtifact("IComptroller");
     this.comptroller = await deployMockContract(this.deployer, Comptroller.abi);
     // deploy fund deployer
-    const Funddeployer = await hre.artifacts.readArtifact("IFundDeployer");
+    const Funddeployer = await artifacts.readArtifact("IFundDeployer");
     this.funddeployer = await deployMockContract(
       this.deployer,
       Funddeployer.abi
     );
 
-    const Signal = await hre.artifacts.readArtifact("ISignal");
+    const Signal = await artifacts.readArtifact("ISignal");
     this.signal = await deployMockContract(this.deployer, Signal.abi);
     await this.signal.mock.getSignalSymbols
       .withArgs("signal1")

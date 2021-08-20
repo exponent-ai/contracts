@@ -15,7 +15,8 @@
 // You should have received a copy of the GNU General Public License
 // along with Exponent.  If not, see <http://www.gnu.org/licenses/>.
 
-const { expect } = require("chai");
+import { ethers } from "hardhat";
+import { expect } from "chai";
 
 describe("XPNVault", function () {
   beforeEach(async function () {

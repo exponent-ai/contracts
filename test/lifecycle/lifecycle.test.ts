@@ -1,23 +1,43 @@
-require("dotenv").config();
-const { expect } = require("chai");
+// Copyright (C) 2021 Exponent
 
-const { randomAddress } = require("../utils/address.js");
-const {
-  seedBalance,
-  initMainnetEnv,
-  cleanUp,
-  setSnapshot,
-} = require("../utils/integration-test-setup.js");
-const { kyberTakeOrderArgs } = require("@enzymefinance/protocol");
-const {
+// This file is part of Exponent.
+
+// Exponent is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+
+// Exponent is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with Exponent.  If not, see <http://www.gnu.org/licenses/>.
+
+import { ethers } from "hardhat";
+import { expect } from "chai";
+
+import { randomAddress } from "../utils/address.js";
+import { kyberTakeOrderArgs } from "@enzymefinance/protocol";
+import {
   managementFeeConfigArgs,
   feeManagerConfigArgs,
   performanceFeeConfigArgs,
   convertRateToScaledPerSecondRate,
-} = require("@enzymefinance/protocol");
+} from "@enzymefinance/protocol";
+import {
+  seedBalance,
+  initMainnetEnv,
+  cleanUp,
+  setSnapshot,
+} from "../utils/integration-test-setup";
+import { Role, grantRole } from "src/role";
+import { addAsset } from "src/addAsset";
+import { SignalService, defaultSignal } from "src/signal";
+import { feeConfig, deployerArgs } from "src/deployer";
 
 describe("XPN life cycle", function () {
-  let contracts;
   describe("XPN happy path", function () {
     /* set up
           - set up env
@@ -62,7 +82,7 @@ describe("XPN life cycle", function () {
         this.signalProvider,
       ] = await ethers.getSigners();
 
-      [contracts] = await initMainnetEnv();
+      [this.contracts] = await initMainnetEnv();
 
       this.depositAmount = ethers.utils.parseUnits("50", 18);
 
@@ -78,6 +98,10 @@ describe("XPN life cycle", function () {
       const Signal = await ethers.getContractFactory("XPNSignal");
       this.simpleSignal = await Signal.connect(this.signalProvider).deploy();
       await this.simpleSignal.deployed();
+      this.signal = new SignalService({
+        signalRegistra: defaultSignal,
+        contract: this.simpleSignal.connect(this.signalProvider),
+      });
     });
 
     it("deploy fund", async function () {
@@ -90,89 +114,71 @@ describe("XPN life cycle", function () {
         },
       });
 
-      const rate = ethers.utils.parseEther("0.015"); // .15%
-      const scaledPerSecondRate = convertRateToScaledPerSecondRate(rate);
-
-      const managementFeeSettings =
-        managementFeeConfigArgs(scaledPerSecondRate);
-      const performanceFeeRate = ethers.utils.parseEther(".1"); // 10% performance fees
-      const performanceFeePeriod = ethers.BigNumber.from(24 * 60 * 60 * 365); // 365 days
-      const performanceFeeConfig = performanceFeeConfigArgs({
-        rate: performanceFeeRate,
-        period: performanceFeePeriod,
-      });
-      const feeManagerConfigData = feeManagerConfigArgs({
-        fees: [
-          contracts.ENZYME_MANAGEMENT_FEE.address,
-          contracts.ENZYME_PERFORMANCE_FEE.address,
-        ],
-        settings: [managementFeeSettings, performanceFeeConfig],
+      const feeManagerConfigData = feeConfig({
+        managementFeePercent: "0.015",
+        managementFeeAddress: this.contracts.ENZYME_MANAGEMENT_FEE.address,
+        performanceFeePercent: "0.1",
+        performanceFeeAddress: this.contracts.ENZYME_PERFORMANCE_FEE.address,
       });
 
-      const constructorArgs = [
-        this.admin.address,
-        this.settler.address,
-        this.simpleSignal.address, // signal address
-        this.contracts.WETH.address,
-        "WETH",
-        this.contracts.ENZYME_DEPLOYER.address,
-        this.contracts.ENZYME_INT_MANAGER.address,
-        this.contracts.ENZYME_ASSET_ADAPTER.address,
-        this.contracts.ENZYME_POLICY_MANAGER.address, // policy manager // Missing for CONF
-        this.contracts.ENZYME_INVESTOR_WHITELIST.address, // investor whitelist  // Missing for CONF
-        ethers.constants.AddressZero,
-        ethers.constants.AddressZero,
-        feeManagerConfigData,
-        "EX-ETH",
-      ];
+      const enzymeContracts = {
+        deployer: this.contracts.ENZYME_DEPLOYER.address,
+        integrationManager: this.contracts.ENZYME_INT_MANAGER.address,
+        trackedAssetAdapter: this.contracts.ENZYME_ASSET_ADAPTER.address,
+        policyManager: this.contracts.ENZYME_POLICY_MANAGER.address,
+        whitelistPolicy: this.contracts.ENZYME_INVESTOR_WHITELIST.address,
+      };
+
+      const constructorArgs = deployerArgs({
+        enzyme: enzymeContracts,
+        admin: this.admin.address,
+        settler: this.settler.address,
+        signal: this.simpleSignal.address,
+        denomAsset: this.contracts.WETH.address,
+        denomSymbol: "WETH",
+        tokenSymbol: "EX-ETH",
+        feeConfig: feeManagerConfigData,
+      });
 
       this.main = await Main.deploy(constructorArgs, "EX-ETH", "EX-ETH");
       await this.main.deployed();
     });
 
     it("create signal", async function () {
-      await this.simpleSignal
-        .connect(this.signalProvider)
-        .registerSignal("testsignal", "Simple", ["WETH", "BTC", "USDC"]);
+      await this.signal.register();
     });
 
     it("submit signal", async function () {
-      await this.simpleSignal
-        .connect(this.signalProvider)
-        .submitSignal("testsignal", ["WETH", "BTC", "USDC"], [1, 0, 1], "0x");
+      await this.signal.submit([1, 0, 1]);
     });
 
     it("set asset whitelist", async function () {
-      this.assetWhitelisterRole = ethers.utils.keccak256(
-        ethers.utils.toUtf8Bytes("ASSET_WHITELIST_ROLE")
-      );
-      await this.main
-        .connect(this.admin)
-        .grantRole(this.assetWhitelisterRole, this.assetWhitelister.address);
-      const btcAddress = contracts.WBTC.address;
-      const btcETHFeed = contracts.ORACLE_WBTC_ETH.address;
-      await this.main
-        .connect(this.assetWhitelister)
-        .addAssetFeedConfig("BTC", btcAddress, btcETHFeed);
+      await grantRole({
+        grantor: this.main.connect(this.admin),
+        role: Role.AssetWhitelister,
+        grantee: this.assetWhitelister.address,
+      });
 
-      await this.main.connect(this.assetWhitelister).whitelistAsset(btcAddress);
-      const usdcAddress = contracts.USDC.address;
-      const usdcETHFeed = contracts.ORACLE_USDC_ETH.address;
-      await this.main
-        .connect(this.assetWhitelister)
-        .addAssetFeedConfig("USDC", usdcAddress, usdcETHFeed);
-      await this.main
-        .connect(this.assetWhitelister)
-        .whitelistAsset(usdcAddress);
+      await addAsset({
+        contract: this.main.connect(this.assetWhitelister),
+        asset: this.contracts.WBTC.address,
+        feed: this.contracts.ORACLE_WBTC_ETH.address,
+        symbol: "BTC",
+      });
 
-      const wethAddress = contracts.WETH.address;
-      const wethFeed = contracts.WETH.address;
-      await this.main
-        .connect(this.assetWhitelister)
-        .addAssetFeedConfig("WETH", wethAddress, randomAddress());
-      await this.main
-        .connect(this.assetWhitelister)
-        .whitelistAsset(wethAddress);
+      await addAsset({
+        contract: this.main.connect(this.assetWhitelister),
+        asset: this.contracts.USDC.address,
+        feed: this.contracts.ORACLE_USDC_ETH.address,
+        symbol: "USDC",
+      });
+
+      await addAsset({
+        contract: this.main.connect(this.assetWhitelister),
+        asset: this.contracts.WETH.address,
+        feed: this.contracts.WETH.address, // contract will ignore denomasset feed
+        symbol: "WETH",
+      });
     });
 
     it("set signal", async function () {
@@ -186,12 +192,11 @@ describe("XPN life cycle", function () {
     });
 
     it("whitelistVenue", async function () {
-      this.venueWhitelisterRole = ethers.utils.keccak256(
-        ethers.utils.toUtf8Bytes("VENUE_WHITELIST_ROLE")
-      );
-      await this.main
-        .connect(this.admin)
-        .grantRole(this.venueWhitelisterRole, this.venueWhitelister.address);
+      await grantRole({
+        grantor: this.main.connect(this.admin),
+        role: Role.VenueWhitelister,
+        grantee: this.venueWhitelister.address,
+      });
       await this.main
         .connect(this.venueWhitelister)
         .whitelistVenue(process.env.KYBER_ADDRESS);
@@ -236,12 +241,12 @@ describe("XPN life cycle", function () {
 
     it("withdraw fee", async function () {
       await ethers.provider.send("evm_increaseTime", [24 * 60 * 60 * 365]);
-      await ethers.provider.send("evm_mine");
+      await ethers.provider.send("evm_mine", []);
       await this.main
         .connect(this.admin)
-        .redeemFees(contracts.ENZYME_FEE_MANAGER.address, [
-          contracts.ENZYME_MANAGEMENT_FEE.address,
-          contracts.ENZYME_PERFORMANCE_FEE.address,
+        .redeemFees(this.contracts.ENZYME_FEE_MANAGER.address, [
+          this.contracts.ENZYME_MANAGEMENT_FEE.address,
+          this.contracts.ENZYME_PERFORMANCE_FEE.address,
         ]);
     });
 
