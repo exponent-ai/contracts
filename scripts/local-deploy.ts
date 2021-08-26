@@ -21,10 +21,8 @@ import {
   seedBalance,
   initMainnetEnv,
 } from "../test/utils/integration-test-setup";
-import { randomAddress } from "../test/utils/address";
 import { Role, grantRole} from "../src/role";
 import { addAsset } from "../src/addAsset";
-import { SignalService, defaultSignal } from "../src/signal";
 import { feeConfig, deployerArgs } from "../src/deployer";
 
 
@@ -33,11 +31,7 @@ async function main() {
   const [ contracts ] = await initMainnetEnv();
 
   const kyberVenue = contracts.KYBER.address;
-  const usdcAddress = contracts.USDC.address;
-  const wethAddress = contracts.WETH.address;
-  const usdcETHFeed = contracts.ORACLE_USDC_ETH.address;
-  const btcAddress = contracts.WBTC.address;
-  const btcETHFeed = contracts.ORACLE_WBTC_ETH.address;
+  const uniswapV2Venue = contracts.UNISWAPV2.address;
 
   // Seed balances
   await seedBalance({
@@ -164,7 +158,7 @@ async function main() {
   await main.connect(admin).initializeFundConfig();
   console.log("Initialized fund config");
 
-  // Whitelist venue
+  // Whitelist venues
   await grantRole({
     grantor: main.connect(admin),
     role: Role.VenueWhitelister,
@@ -172,6 +166,9 @@ async function main() {
   });
   await main.connect(whitelister).whitelistVenue(kyberVenue);
   console.log("Kyber venue whitelisted");
+
+  await main.connect(whitelister).whitelistVenue(uniswapV2Venue);
+  console.log("UniswapV2 venue whitelisted");
 
   // Initial vault deposit
   const depositAmount = ethers.utils.parseUnits("5", 18);
