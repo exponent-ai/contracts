@@ -203,7 +203,7 @@ describe("XPNCore", function () {
         .setComptrollerLib(newComptrollerLib.address);
 
       // set the release status on fund deployer as 'LIVE'
-      await newDeployer.connect(dispatcherOwner).setReleaseStatus(1);
+      await newDeployer.connect(this.deployer).setReleaseStatus(1);
 
       // set the current the newest release on dispatcher as our new fund deployer
       await dispatcher.setCurrentFundDeployer(newDeployer.address);

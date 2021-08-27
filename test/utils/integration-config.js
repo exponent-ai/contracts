@@ -16,7 +16,7 @@ const contracts = [
   },
   {
     name: "KYBER",
-    address: process.env.KYBER_ADDRESS,
+    address: process.env.ENZYME_KYBER_ADAPTER,
   },
   {
     name: "UNISWAPV2",

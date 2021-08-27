@@ -93,7 +93,7 @@ describe("XPNSettlement", function () {
       outgoingAsset: this.contracts.WETH.address,
       outgoingAssetAmount: ethers.utils.parseEther("1"),
     });
-    const kyberVenue = process.env.KYBER_ADDRESS;
+    const kyberVenue = this.contracts.KYBER.address;
     await this.settler.submitTradeOrders(
       Array.of(kyberArgs, kyberArgs),
       Array.of(kyberVenue, kyberVenue)

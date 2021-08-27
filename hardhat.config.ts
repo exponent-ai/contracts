@@ -38,7 +38,11 @@ module.exports = {
             gas: "auto",
           },
         }
-      : {},
+    : {
+      hardhat: {
+        initialBaseFeePerGas: 0
+      }
+    },
   abiExporter: {
     path: "./data/abi",
     clear: true,

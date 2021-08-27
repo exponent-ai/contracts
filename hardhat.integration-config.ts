@@ -22,6 +22,7 @@ dotenv.config();
 module.exports = {
   networks: {
     hardhat: {
+      chainId: 1,
       forking: {
         url: process.env.ETH_RPC,
         blocknumber: parseInt(process.env.BLOCK_NUMBER as string),

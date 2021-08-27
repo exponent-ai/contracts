@@ -199,7 +199,7 @@ describe("XPN life cycle", function () {
       });
       await this.main
         .connect(this.venueWhitelister)
-        .whitelistVenue(process.env.KYBER_ADDRESS);
+        .whitelistVenue(this.contracts.KYBER.address);
     });
 
     it("deposit", async function () {
@@ -225,7 +225,7 @@ describe("XPN life cycle", function () {
         outgoingAsset: this.contracts.WETH.address,
         outgoingAssetAmount: ethers.utils.parseEther("1"),
       });
-      const kyberVenue = process.env.KYBER_ADDRESS;
+      const kyberVenue = this.contracts.KYBER.address;
       await this.main
         .connect(this.settler)
         .submitTradeOrders(Array.of(kyberArgs), Array.of(kyberVenue));
