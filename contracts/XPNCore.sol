@@ -114,8 +114,9 @@ contract XPNCore is XPNVault, XPNSettlement, XPNPortfolio {
     ) XPNPortfolio() XPNVault(_tokenName, _symbol) XPNSettlement() {
         globalState = _constructorConfig;
         _whitelistAsset(globalState.denomAssetAddress); //denominated asset is automatically whitelisted
-        (address comptrollerAddress, address sharesAddress) =
-            IFundDeployer(globalState.EZdeployer).createNewFund(
+        (address comptrollerAddress, address sharesAddress) = IFundDeployer(
+            globalState.EZdeployer
+        ).createNewFund(
                 address(this), // fund deployer
                 globalState.name, // fund name
                 address(globalState.denomAssetAddress), // denomination asset
@@ -245,8 +246,9 @@ contract XPNCore is XPNVault, XPNSettlement, XPNPortfolio {
     function _verifySignal(address _signal, string memory _signalName)
         internal
     {
-        string[] memory symbols =
-            ISignal(_signal).getSignalSymbols(_signalName);
+        string[] memory symbols = ISignal(_signal).getSignalSymbols(
+            _signalName
+        );
         for (uint256 i; i < symbols.length; i++) {
             string memory symbol = symbols[i];
             if (XPNUtils.compareStrings(symbol, _getDenomAssetSymbol())) {
@@ -309,8 +311,8 @@ contract XPNCore is XPNVault, XPNSettlement, XPNPortfolio {
         override
         returns (int256)
     {
-        (, int256 price, , , ) =
-            AggregatorV3Interface(assetToPriceFeed[_asset]).latestRoundData();
+        (, int256 price, , , ) = AggregatorV3Interface(assetToPriceFeed[_asset])
+            .latestRoundData();
         return price;
     }
 
@@ -351,8 +353,8 @@ contract XPNCore is XPNVault, XPNSettlement, XPNPortfolio {
         uint256[] memory amount = new uint256[](1);
         buyer[0] = address(this);
         amount[0] = _amount;
-        uint256[] memory sharesBought =
-            IComptroller(globalState.EZcomptroller).buyShares(
+        uint256[] memory sharesBought = IComptroller(globalState.EZcomptroller)
+            .buyShares(
                 buyer, // this contract as a single buyer
                 amount, // amount of shares to purchase
                 amount // expect at least the specified amount
@@ -406,8 +408,11 @@ contract XPNCore is XPNVault, XPNSettlement, XPNPortfolio {
         override
         returns (bool)
     {
-        bytes memory callargs =
-            abi.encode(_venue, LEND_ORDER_SELECTOR, _lending);
+        bytes memory callargs = abi.encode(
+            _venue,
+            LEND_ORDER_SELECTOR,
+            _lending
+        );
         IComptroller(globalState.EZcomptroller).callOnExtension(
             globalState.EZintegrationManager,
             DEFI_INTEGRATION, // action id = 0
@@ -422,8 +427,11 @@ contract XPNCore is XPNVault, XPNSettlement, XPNPortfolio {
         override
         returns (bool)
     {
-        bytes memory callargs =
-            abi.encode(_venue, REDEEM_ORDER_SELECTOR, _redemption);
+        bytes memory callargs = abi.encode(
+            _venue,
+            REDEEM_ORDER_SELECTOR,
+            _redemption
+        );
         IComptroller(globalState.EZcomptroller).callOnExtension(
             globalState.EZintegrationManager,
             DEFI_INTEGRATION, // action id = 0
@@ -459,9 +467,9 @@ contract XPNCore is XPNVault, XPNSettlement, XPNPortfolio {
     // @notice deploys new comptroller on enzyme fund deployer
     function _createMigration(State memory _newState) internal {
         postMigrationState = _newState;
-        address newComptrollerProxy =
-            IFundDeployer(postMigrationState.EZdeployer)
-                .createMigratedFundConfig(
+        address newComptrollerProxy = IFundDeployer(
+            postMigrationState.EZdeployer
+        ).createMigratedFundConfig(
                 globalState.denomAssetAddress, // denominated asset
                 SHARES_TIMELOCK, // sets shares action timelock to 1
                 _newState.EZfeeConfig, // utilize new fee config

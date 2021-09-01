@@ -53,8 +53,11 @@ contract IntXPNVSettlementSpy is XPNSettlement {
         override
         returns (bool)
     {
-        bytes memory callargs =
-            abi.encode(_venue, LEND_ORDER_SELECTOR, _lending);
+        bytes memory callargs = abi.encode(
+            _venue,
+            LEND_ORDER_SELECTOR,
+            _lending
+        );
         IComptroller(comptroller).callOnExtension(
             integrationManager,
             0,
@@ -68,8 +71,11 @@ contract IntXPNVSettlementSpy is XPNSettlement {
         override
         returns (bool)
     {
-        bytes memory callargs =
-            abi.encode(_venue, REDEEM_ORDER_SELECTOR, _redemption);
+        bytes memory callargs = abi.encode(
+            _venue,
+            REDEEM_ORDER_SELECTOR,
+            _redemption
+        );
         IComptroller(comptroller).callOnExtension(
             integrationManager,
             0,

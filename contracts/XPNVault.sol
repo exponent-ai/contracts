@@ -22,7 +22,6 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "./LPToken.sol";
-import "hardhat/console.sol";
 
 // @title core application logic for vault
 // @notice to be inherited by the implementation contract for added functionality
@@ -47,7 +46,7 @@ abstract contract XPNVault is ReentrancyGuard {
     // @notice deposit denominated asset into the contract
     // @param _amount amount to be deposited
     // @dev denominated asset must be approved first
-    // @return amount of LP tokens minted
+    // @return minted amount of LP tokens minted
     function _deposit(uint256 _amount) internal returns (uint256 minted) {
         IERC20 denomAsset = IERC20(_getDenomAssetAddress());
         require(_amount > 0, "Vault: _amount cant be zero");
@@ -68,13 +67,15 @@ abstract contract XPNVault is ReentrancyGuard {
         );
         lptoken.mint(msg.sender, minted);
         emit Deposit(msg.sender, _amount);
+        return minted;
     }
 
     // @notice redeem LP token share for denominated asset
     // @notice currently withdraw basket of tokens to user
     // @param _amount amount of LP token to be redeemed
     // @dev LP token must be approved first
-    // @return assets and amount of to be withdrawn
+    // @return payoutAssets array of the asset to payout
+    // @return payoutAmounts array of the amount to payout
     function _withdraw(uint256 _amount)
         internal
         returns (address[] memory payoutAssets, uint256[] memory payoutAmounts)
@@ -88,6 +89,7 @@ abstract contract XPNVault is ReentrancyGuard {
         (payoutAssets, payoutAmounts) = _withdrawHook(_amount);
         bool result = _doWithdraw(msg.sender, payoutAssets, payoutAmounts);
         require(result, "Vault: unsuccessful transfer to withdrawer");
+        return (payoutAssets, payoutAmounts);
     }
 
     // @notice redeem enzyme transaction fee enzyme vault to admin address
@@ -102,12 +104,15 @@ abstract contract XPNVault is ReentrancyGuard {
     {
         _redeemFeesHook(_feeManager, _fees);
         address shares = _getSharesAddress();
-        uint256 collectedFees =
-            IERC20(shares).totalSupply() - lptoken.totalSupply();
+        uint256 collectedFees = IERC20(shares).totalSupply() -
+            lptoken.totalSupply();
         require(collectedFees > 0, "_redeemFees: no fee shares available");
         (payoutAssets, payoutAmounts) = _withdrawHook(collectedFees);
-        bool result =
-            _doWithdraw(_getAdminAddress(), payoutAssets, payoutAmounts);
+        bool result = _doWithdraw(
+            _getAdminAddress(),
+            payoutAssets,
+            payoutAmounts
+        );
         require(result, "Vault: unsuccessful redemption");
     }
 
@@ -118,8 +123,10 @@ abstract contract XPNVault is ReentrancyGuard {
         uint256[] memory payoutAmounts
     ) private returns (bool) {
         for (uint8 i = 0; i < payoutAssets.length; i++) {
-            bool res =
-                IERC20(payoutAssets[i]).transfer(recipient, payoutAmounts[i]);
+            bool res = IERC20(payoutAssets[i]).transfer(
+                recipient,
+                payoutAmounts[i]
+            );
             if (!res) return false;
         }
         // won't verify that that payout assets is calculated correctly due to gas cost of tracking multiple payouts

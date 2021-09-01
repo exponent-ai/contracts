@@ -219,7 +219,7 @@ contract XPNMain is IXPN, XPNCore, AccessControlEnumerable {
                 _isWalletWhitelisted(msg.sender),
                 "Wallet is not whitelisted"
             );
-            _deposit(_amount);
+            return _deposit(_amount);
         } else {
             return _deposit(_amount);
         }

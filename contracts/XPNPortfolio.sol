@@ -78,13 +78,14 @@ abstract contract XPNPortfolio {
         int256[] memory tokens = new int256[](symbols.length);
 
         for (uint256 i = 0; i < symbols.length; i++) {
-            IERC20Metadata tmpToken =
-                IERC20Metadata(_getSymbolToToken(symbols[i]));
+            IERC20Metadata tmpToken = IERC20Metadata(
+                _getSymbolToToken(symbols[i])
+            );
             uint256 tokenDecimals = uint256(tmpToken.decimals());
             int256 rawBalance = int256(tmpToken.balanceOf(_getVaultAddress()));
 
-            int256 convertedBalance =
-                (rawBalance * ONE) / int256(10**tokenDecimals);
+            int256 convertedBalance = (rawBalance * ONE) /
+                int256(10**tokenDecimals);
 
             tokens[i] = int256(convertedBalance);
         }
@@ -216,12 +217,11 @@ abstract contract XPNPortfolio {
         int256 preTradeValue = _portfolioValue();
         int256 preTradeDistance = _signalPortfolioDiffPercent();
         _;
-        int256 distanceImproved =
-            preTradeDistance - _signalPortfolioDiffPercent();
+        int256 distanceImproved = preTradeDistance -
+            _signalPortfolioDiffPercent();
         int256 valueLoss = preTradeValue - _portfolioValue();
-        int256 expectedLoss =
-            (((preTradeValue * distanceImproved) / ONE) *
-                (ONE - _getExpectedEfficiency())) / ONE;
+        int256 expectedLoss = (((preTradeValue * distanceImproved) / ONE) *
+            (ONE - _getExpectedEfficiency())) / ONE;
 
         require(
             distanceImproved > 0 && valueLoss < expectedLoss,

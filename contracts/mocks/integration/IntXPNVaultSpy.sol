@@ -34,8 +34,8 @@ contract SpyIntXPNVault is XPNVault {
         integrationManager = _integrationManager;
         assetTrackedAdapter = _trackedAdapter;
         denomAsset = _denomAsset;
-        (address controllerAddress, address sharesAddress) =
-            deployer.createNewFund(
+        (address controllerAddress, address sharesAddress) = deployer
+            .createNewFund(
                 address(this),
                 "XPN-Vault",
                 address(denomAsset),
@@ -70,8 +70,11 @@ contract SpyIntXPNVault is XPNVault {
         uint256[] memory amounts = new uint256[](1);
         buyers[0] = address(this);
         amounts[0] = _amount;
-        uint256[] memory sharesBought =
-            controller.buyShares(buyers, amounts, amounts);
+        uint256[] memory sharesBought = controller.buyShares(
+            buyers,
+            amounts,
+            amounts
+        );
         return sharesBought[0]; // should have bought only a single share
     }
 

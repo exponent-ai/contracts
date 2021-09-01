@@ -24,7 +24,10 @@ abstract contract XPNSettlement {
     event Redeem(address indexed, bytes, address);
 
     // actions taken on liquidity or lending pool
-    enum Pool {LEND, REDEEM}
+    enum Pool {
+        LEND,
+        REDEEM
+    }
 
     // @notice submit multiple trade orders
     // @param _trades array of ABI encoded trades to submit
@@ -71,10 +74,9 @@ abstract contract XPNSettlement {
                 _venueIsWhitelisted(_venues[i]),
                 "XPNSettlement: venue is not whitelisted"
             );
-            bool success =
-                _txTypes[i] == Pool.LEND
-                    ? _lend(_orders[i], _venues[i])
-                    : _redeem(_orders[i], _venues[i]);
+            bool success = _txTypes[i] == Pool.LEND
+                ? _lend(_orders[i], _venues[i])
+                : _redeem(_orders[i], _venues[i]);
             require(success, "XPNSettlement: a trade did not execute");
         }
         return true;
