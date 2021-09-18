@@ -311,9 +311,12 @@ contract XPNCore is XPNVault, XPNSettlement, XPNPortfolio {
         override
         returns (int256)
     {
-        (, int256 price, , , ) = AggregatorV3Interface(assetToPriceFeed[_asset])
-            .latestRoundData();
-        return price;
+        AggregatorV3Interface priceFeed = AggregatorV3Interface(
+            assetToPriceFeed[_asset]
+        );
+        (, int256 price, , , ) = priceFeed.latestRoundData();
+        int256 priceScaled = (price * ONE) / int256(10)**priceFeed.decimals();
+        return priceScaled;
     }
 
     function _getVaultAddress() internal view override returns (address) {

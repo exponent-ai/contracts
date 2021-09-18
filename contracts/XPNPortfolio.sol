@@ -48,6 +48,7 @@ abstract contract XPNPortfolio {
         returns (address)
     {}
 
+    // @dev assume 18 decimal
     function _getTokenPrice(address _asset)
         internal
         view
