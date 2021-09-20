@@ -36,6 +36,7 @@ import { Role, grantRole } from "src/role";
 import { addAsset } from "src/addAsset";
 import { SignalService, defaultSignal } from "src/signal";
 import { feeConfig, deployerArgs } from "src/deployer";
+import { getShares } from "src/vaultGetters";
 
 describe("XPN life cycle", function () {
   describe("XPN happy path", function () {
@@ -142,6 +143,7 @@ describe("XPN life cycle", function () {
 
       this.main = await Main.deploy(constructorArgs, "EX-ETH", "EX-ETH");
       await this.main.deployed();
+      this.enzymeConfig = await this.main.getEnzymeConfig();
     });
 
     it("create signal", async function () {
@@ -214,10 +216,10 @@ describe("XPN life cycle", function () {
       this.timeout(100000);
       this.tradeAmount = "1804000000";
       const prewethbal = await this.contracts.WETH.balanceOf(
-        this.main.getSharesAddress()
+        getShares(this.enzymeConfig)
       );
       const preusdcbal = await this.contracts.USDC.balanceOf(
-        this.main.getSharesAddress()
+        getShares(this.enzymeConfig)
       );
       const kyberArgs = kyberTakeOrderArgs({
         incomingAsset: this.contracts.USDC.address,
@@ -230,10 +232,10 @@ describe("XPN life cycle", function () {
         .connect(this.settler)
         .submitTradeOrders(Array.of(kyberArgs), Array.of(kyberVenue));
       const postwethbal = await this.contracts.WETH.balanceOf(
-        this.main.getSharesAddress()
+        getShares(this.enzymeConfig)
       );
       const postusdcbal = await this.contracts.USDC.balanceOf(
-        this.main.getSharesAddress()
+        getShares(this.enzymeConfig)
       );
       expect(prewethbal).to.be.above(postwethbal);
       expect(preusdcbal).to.be.below(postusdcbal);

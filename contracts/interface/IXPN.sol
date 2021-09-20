@@ -34,23 +34,33 @@ interface IXPN is IAccessControlEnumerable {
         address[] memory _venues
     ) external returns (bool);
 
-    function getSignalPool() external view returns (address);
-
-    function getSignalName() external view returns (string memory);
-
-    function getComptrollerAddress() external view returns (address);
-
-    function getSharesAddress() external view returns (address);
-
-    function getDeployerAddress() external view returns (address);
-
-    function getLPTokenAddress() external view returns (address);
-
-    function getDenominationAsset() external view returns (address);
-
     function createMigration(XPNCore.State memory) external;
 
     function signalMigration() external;
 
     function executeMigration() external;
+
+    function getExponentConfig()
+        external
+        view
+        returns (
+            address denomAsset,
+            address lptoken,
+            address signalPool,
+            string memory signalName,
+            address admin
+        );
+
+    function getEnzymeConfig()
+        external
+        view
+        returns (
+            address EZshares,
+            address EZcomptroller,
+            address EZwhitelistPolicy,
+            address EZpolicy,
+            address EZtrackedAssetAdapter,
+            address EZintegrationManager,
+            address EZdeployer
+        );
 }

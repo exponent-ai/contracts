@@ -231,7 +231,7 @@ describe("XPNCore", function () {
       );
 
       await this.core.connect(this.depositor).deposit(depositAmount); //deposit should work
-      const oldVaultAddress = await this.core.getVaultAddress();
+      const oldVaultAddress = await this.core.getSharesAddress();
       await expect(this.core.createMigration(newConstructorArgs)).to.emit(
         this.core,
         "MigrationCreated"

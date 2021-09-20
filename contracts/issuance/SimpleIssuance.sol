@@ -161,7 +161,7 @@ contract SimpleIssuance is ReentrancyGuard, AccessControl, Pausable {
         onlyStage(Stages.Started, currentRoundId)
     {
         require(_amount > 0, "issuance: amount can't be zero");
-        denomAsset.transferFrom(msg.sender, address(this), _amount);
+        denomAsset.safeTransferFrom(msg.sender, address(this), _amount);
         roundData[currentRoundId].totalDeposit += _amount;
         uint256 totalDeposit = roundData[currentRoundId].totalDeposit;
         uint256 goal = roundData[currentRoundId].goal;
@@ -221,7 +221,7 @@ contract SimpleIssuance is ReentrancyGuard, AccessControl, Pausable {
             _setCurrentRoundStage(Stages.Started);
         }
         // transfer ticket balance to user
-        denomAsset.transfer(msg.sender, _amount);
+        denomAsset.safeTransfer(msg.sender, _amount);
         emit SellTicket(msg.sender, _amount);
     }
 
@@ -236,7 +236,7 @@ contract SimpleIssuance is ReentrancyGuard, AccessControl, Pausable {
     {
         // approve vault and deposit
         uint256 amount = roundData[currentRoundId].totalDeposit;
-        denomAsset.approve(vault, amount);
+        denomAsset.safeApprove(vault, amount);
         uint256 mintedVaultTokens = IXPN(vault).deposit(amount);
         // update the round with the current totalShares returned from deposit
         roundData[currentRoundId].totalShares = mintedVaultTokens;
@@ -266,7 +266,7 @@ contract SimpleIssuance is ReentrancyGuard, AccessControl, Pausable {
         uint256 claimable = (round.totalShares * fraction) / 1e18;
         // transfer the share of vault tokens to end user.
         userTicket[_roundId][msg.sender].redeemed = true;
-        vaultToken.transfer(msg.sender, claimable);
+        vaultToken.safeTransfer(msg.sender, claimable);
         emit RedeemTicket(msg.sender, claimable);
     }
 }

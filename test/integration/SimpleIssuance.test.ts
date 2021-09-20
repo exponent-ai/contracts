@@ -26,6 +26,7 @@ import {
 } from "../utils/integration-test-setup";
 import { Role, grantRole } from "src/role";
 import { addAsset } from "src/addAsset";
+import { getLPToken, getShares } from 'src/vaultGetters';
 import { SignalService, defaultSignal } from "src/signal";
 import { feeConfig, deployerArgs } from "src/deployer";
 
@@ -130,7 +131,8 @@ describe("SimpleIssuance", function () {
 
     const Issuance = await ethers.getContractFactory("SimpleIssuance");
     const startGoal = this.amount;
-    const lptoken = await this.main.getLPTokenAddress();
+    const exponentConfig = await this.main.getExponentConfig()
+    const lptoken = getLPToken(exponentConfig);
     this.contracts.lptoken = await ethers.getContractAt("ERC20", lptoken);
     this.issuance = await Issuance.deploy(
       this.admin.address,
@@ -183,7 +185,8 @@ describe("SimpleIssuance", function () {
     expect(await this.contracts.WETH.balanceOf(this.issuance.address)).to.equal(
       0
     );
-    const shares = await this.main.getSharesAddress();
+    const enzymeConfig = await this.main.getEnzymeConfig();
+    const shares = getShares(enzymeConfig);
     expect(await this.contracts.WETH.balanceOf(shares)).to.equal(amount);
     expect(
       await this.contracts.lptoken.balanceOf(this.issuance.address)

@@ -18,7 +18,7 @@
     "sollint": "prettier --write 'contracts/**/*.sol'",
     "lint": "npm run eslint && npm run sollint",
     "hint": "npx hardhat check",
-    "compile": "npx hardhat compile",
+    "compile": "npx hardhat compile && npx hardhat size-contracts",
     "format": "prettier --write ./test ./src",
     "prepare": "husky install",
     "deploy": "npx hardhat run scripts/deploy.js",
@@ -68,6 +68,7 @@
     "@openzeppelin/contracts": "^4.3.0",
     "dotenv": "^8.2.0",
     "hardhat-abi-exporter": "^2.2.1",
+    "hardhat-contract-sizer": "^2.1.0",
     "hardhat-tracer": "^1.0.0-alpha.3",
     "tsconfig-paths": "^3.10.1"
   }

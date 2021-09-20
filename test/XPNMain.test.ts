@@ -19,6 +19,20 @@ import { ethers, waffle, artifacts } from "hardhat";
 import { expect } from "chai";
 const { deployMockContract } = waffle;
 import { randomAddress } from "./utils/address";
+import {
+  getDenomAsset,
+  getLPToken,
+  getSignalPool,
+  getSignalName,
+  getAdmin,
+  getShares,
+  getComptroller,
+  getWhitelistPolicy,
+  getPolicyManager,
+  getTrackedAssetAdapter,
+  getIntegrationManager,
+  getDeployer
+} from '../src/vaultGetters';
 
 describe("XPNMain", function () {
   beforeEach(async function () {
@@ -419,53 +433,57 @@ describe("XPNMain", function () {
   });
 
   describe("state getters", async function () {
+    beforeEach( async function () {
+      this.exponentConfig = await this.main.getExponentConfig()
+      this.enzymeConfig = await this.main.getEnzymeConfig();
+    })
     it("should get denominated asset", async function () {
-      expect(await this.main.getDenominationAsset()).to.be.equal(
+      expect(getDenomAsset(this.exponentConfig)).to.be.equal(
         this.weth.address
       );
     });
     it("should get lp token address", async function () {
-      expect(await this.main.getLPTokenAddress()).to.not.be.null;
+      expect(getLPToken(this.exponentConfig)).to.not.be.null;
     });
     it("should get shares address", async function () {
-      expect(await this.main.getSharesAddress).to.not.be.null;
+      expect(getShares(this.enzymeConfig)).to.not.be.null;
     });
     it("should get current signal name", async function () {
-      expect(await this.main.getSignalName()).to.be.equal("signal1");
+      expect(getSignalName(this.exponentConfig)).to.be.equal("signal1");
     });
     it("should get signal pool address", async function () {
-      expect(await this.main.getSignalPool()).to.be.equal(this.signal.address);
+      expect(getSignalPool(this.exponentConfig)).to.be.equal(this.signal.address);
     });
     it("should get enzyme whitelist policy address", async function () {
-      expect(await this.main.getWhitelistPolicyAddress()).to.be.equal(
+      expect(getWhitelistPolicy(this.enzymeConfig)).to.be.equal(
         this.whitelistPolicyAddress
       );
     });
     it("should get enzyme policy address", async function () {
-      expect(await this.main.getPolicyAddress()).to.be.equal(
+      expect(getPolicyManager(this.enzymeConfig)).to.be.equal(
         this.policymanager.address
       );
     });
     it("should get enzyme tracked asset adapter address", async function () {
-      expect(await this.main.getTrackedAssetAddress()).to.be.equal(
+      expect(getTrackedAssetAdapter(this.enzymeConfig)).to.be.equal(
         this.trackedAssetAdapterAddress
       );
     });
     it("should get enzyme integration manager address", async function () {
-      expect(await this.main.getIntegrationManagerAddress()).to.be.equal(
+      expect(getIntegrationManager(this.enzymeConfig)).to.be.equal(
         this.intmanager.address
       );
     });
     it("should get enzyme deployer address", async function () {
-      expect(await this.main.getDeployerAddress()).to.be.equal(
+      expect(getDeployer(this.enzymeConfig)).to.be.equal(
         this.funddeployer.address
       );
     });
     it("should get enzyme comptroller address", async function () {
-      expect(await this.main.getComptrollerAddress()).to.not.be.null;
+      expect(getComptroller(this.enzymeConfig)).to.not.be.null;
     });
     it("should get admin address", async function () {
-      expect(await this.main.getAdminAddress()).to.be.equal(this.admin.address);
+      expect(getAdmin(this.exponentConfig)).to.be.equal(this.admin.address);
     });
   });
 

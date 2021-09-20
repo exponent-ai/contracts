@@ -55,12 +55,8 @@ abstract contract XPNVault is ReentrancyGuard {
             denomAsset.balanceOf(msg.sender) >= _amount,
             "Vault: not enough balance to deposit"
         );
-        bool res = denomAsset.transferFrom(msg.sender, address(this), _amount);
-        if (res) {
-            minted = _depositHook(_amount);
-        } else {
-            revert("Vault: unsuccessful deposit");
-        }
+        denomAsset.safeTransferFrom(msg.sender, address(this), _amount);
+        minted = _depositHook(_amount);
         require(
             denomAsset.balanceOf(_getSharesAddress()) >= (before + _amount),
             "Vault: incorrect balance after deposit"
@@ -123,11 +119,7 @@ abstract contract XPNVault is ReentrancyGuard {
         uint256[] memory payoutAmounts
     ) private returns (bool) {
         for (uint8 i = 0; i < payoutAssets.length; i++) {
-            bool res = IERC20(payoutAssets[i]).transfer(
-                recipient,
-                payoutAmounts[i]
-            );
-            if (!res) return false;
+            IERC20(payoutAssets[i]).safeTransfer(recipient, payoutAmounts[i]);
         }
         // won't verify that that payout assets is calculated correctly due to gas cost of tracking multiple payouts
         emit Withdraw(recipient, payoutAssets, payoutAmounts);
@@ -140,7 +132,7 @@ abstract contract XPNVault is ReentrancyGuard {
     function _depositHook(uint256 _amount) internal virtual returns (uint256) {}
 
     // @notice get the enzyme shares address
-    function _getSharesAddress() internal virtual returns (address) {}
+    function _getSharesAddress() internal view virtual returns (address) {}
 
     // @notice get the denominated asset address
     function _getDenomAssetAddress() internal virtual returns (address) {}

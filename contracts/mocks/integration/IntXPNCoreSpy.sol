@@ -111,35 +111,31 @@ contract IntXPNCoreSpy is XPNCore {
 
     // state getters
     function getSharesAddress() external view returns (address) {
-        return _getSharesAddress();
-    }
-
-    function getVaultAddress() external view returns (address) {
-        return _getVaultAddress();
+        return globalState.EZshares;
     }
 
     function getWhitelistPolicyAddress() external view returns (address) {
-        return _getWhitelistPolicyAddress();
+        return globalState.EZwhitelistPolicy;
     }
 
     function getPolicyAddress() external view returns (address) {
-        return _getPolicyAddress();
+        return globalState.EZpolicy;
     }
 
     function getTrackedAssetAddress() external view returns (address) {
-        return _getTrackedAssetAddress();
+        return globalState.EZtrackedAssetAdapter;
     }
 
     function getIntegrationManagerAddress() external view returns (address) {
-        return _getIntegrationManagerAddress();
+        return globalState.EZintegrationManager;
     }
 
     function getDeployerAddress() external view returns (address) {
-        return _getDeployerAddress();
+        return globalState.EZdeployer;
     }
 
     function getComptrollerAddress() external view returns (address) {
-        return _getComptrollerAddress();
+        return globalState.EZcomptroller;
     }
 
     function venueWhitelist(address _venue) external view returns (bool) {
@@ -150,8 +146,8 @@ contract IntXPNCoreSpy is XPNCore {
         return _isAssetWhitelisted(_asset);
     }
 
-    function configInitialized() external view returns (bool) {
-        return _isConfigInitialized();
+    function isConfigInitialized() external view returns (bool) {
+        return configInitialized;
     }
 
     /* // helper functions */
@@ -162,7 +158,7 @@ contract IntXPNCoreSpy is XPNCore {
         returns (bool isValid_)
     {
         return
-            IPolicy(_getWhitelistPolicyAddress()).passesRule(
+            IPolicy(globalState.EZwhitelistPolicy).passesRule(
                 _comptrollerProxy,
                 _investor
             );
@@ -170,7 +166,7 @@ contract IntXPNCoreSpy is XPNCore {
 
     function isAuthUserForFund(address _caller) external view returns (bool) {
         return
-            IIntegrationManager(_getIntegrationManagerAddress())
-                .isAuthUserForFund(_getComptrollerAddress(), _caller);
+            IIntegrationManager(globalState.EZintegrationManager)
+                .isAuthUserForFund(globalState.EZcomptroller, _caller);
     }
 }

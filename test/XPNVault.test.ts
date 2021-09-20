@@ -82,7 +82,7 @@ describe("XPNVault", function () {
       await this.token.approve(this.vault.address, this.mintAmount);
       await this.token.setReturnToFalse();
       await expect(this.vault.deposit(this.mintAmount)).to.be.revertedWith(
-        "Vault: unsuccessful deposit"
+        "SafeERC20: ERC20 operation did not succeed"
       );
     });
 
@@ -150,7 +150,7 @@ describe("XPNVault", function () {
       await this.token.setReturnToFalse();
       await this.lptoken.approve(this.vault.address, this.withdrawAmount);
       await expect(this.vault.withdraw(this.withdrawAmount)).to.be.revertedWith(
-        "Vault: unsuccessful transfer to withdrawer"
+        "SafeERC20: ERC20 operation did not succeed"
       );
     });
   });
@@ -195,7 +195,7 @@ describe("XPNVault", function () {
           .connect(this.admin)
           .redeemFees(this.admin.address, [this.admin.address])
       ) // substitute random addresses
-        .to.be.revertedWith("Vault: unsuccessful redemption");
+        .to.be.revertedWith("SafeERC20: ERC20 operation did not succeed");
     });
   });
 });

@@ -53,11 +53,11 @@ contract XPNCore is XPNVault, XPNSettlement, XPNPortfolio {
     }
 
     // @notice application state
-    State private globalState;
-    ISignal private signalPool;
-    string private signalName;
     // @notice the target portfolio value to maintain after
     // the rebalance, default to 98%
+    State internal globalState;
+    ISignal internal signalPool;
+    string internal signalName;
     int256 expectedEfficiency;
     // @notice the contract state after successful migration
     State private postMigrationState;
@@ -81,8 +81,8 @@ contract XPNCore is XPNVault, XPNSettlement, XPNPortfolio {
     // @notice enzyme fees ID for fees payout
     uint256 constant FEE_PAYOUT = 0;
 
-    bool private configInitialized;
-    bool private restricted;
+    bool internal configInitialized;
+    bool internal restricted;
 
     mapping(address => bool) private walletWhitelist;
     mapping(address => bool) private venueWhitelist;
@@ -345,7 +345,7 @@ contract XPNCore is XPNVault, XPNSettlement, XPNPortfolio {
     // @dev implements actual enzyme share purchase on the comptroller
     function _depositHook(uint256 _amount) internal override returns (uint256) {
         require(configInitialized, "XPNCore: config not yet initialized");
-        IERC20(globalState.denomAssetAddress).approve(
+        IERC20(globalState.denomAssetAddress).safeApprove(
             address(globalState.EZcomptroller),
             _amount
         );
@@ -520,34 +520,6 @@ contract XPNCore is XPNVault, XPNSettlement, XPNPortfolio {
         return globalState.EZshares;
     }
 
-    function _getPolicyAddress() internal view returns (address) {
-        return globalState.EZpolicy;
-    }
-
-    function _getTrackedAssetAddress() internal view returns (address) {
-        return globalState.EZtrackedAssetAdapter;
-    }
-
-    function _getIntegrationManagerAddress() internal view returns (address) {
-        return globalState.EZintegrationManager;
-    }
-
-    function _getDeployerAddress() internal view returns (address) {
-        return globalState.EZdeployer;
-    }
-
-    function _getComptrollerAddress() internal view returns (address) {
-        return globalState.EZcomptroller;
-    }
-
-    function _getWhitelistPolicyAddress() internal view returns (address) {
-        return globalState.EZwhitelistPolicy;
-    }
-
-    function _isConfigInitialized() internal view returns (bool) {
-        return configInitialized;
-    }
-
     function _isVenueWhitelisted(address _venue) internal view returns (bool) {
         return venueWhitelist[_venue];
     }
@@ -605,9 +577,5 @@ contract XPNCore is XPNVault, XPNSettlement, XPNPortfolio {
 
     function _isWalletWhitelisted(address wallet) internal view returns (bool) {
         return walletWhitelist[wallet];
-    }
-
-    function _isRestricted() internal view returns (bool) {
-        return restricted;
     }
 }

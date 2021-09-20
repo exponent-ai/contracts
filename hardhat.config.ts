@@ -3,6 +3,7 @@ import "@nomiclabs/hardhat-solhint";
 import { task } from "hardhat/config";
 import "hardhat-gas-reporter";
 import "hardhat-abi-exporter";
+import 'hardhat-contract-sizer';
 import "solidity-coverage";
 
 const { ALCHEMY_APIKEY, KOVAN_PRIVATE_KEY } = process.env;
@@ -23,7 +24,7 @@ module.exports = {
         settings: {
           optimizer: {
             enabled: true,
-            runs: 200,
+            runs: 50,
           },
         },
       },

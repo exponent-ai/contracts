@@ -23,7 +23,7 @@ import "./interface/IXPN.sol";
 // @title monolith contract for exponent vault
 // @notice require post deployment configuration
 // @dev expose only external functions
-contract XPNMain is IXPN, XPNCore, AccessControlEnumerable {
+contract XPNMain is XPNCore, AccessControlEnumerable {
     // @notice default admin role is part of AccessControlEnumerable library
     // bytes32 public constant DEFAULT_ADMIN_ROLE = keccak256("DEFAULT_ADMIN_ROLE");
 
@@ -172,7 +172,6 @@ contract XPNMain is IXPN, XPNCore, AccessControlEnumerable {
     // @dev only callable by admin role
     function createMigration(State memory _newState)
         external
-        override
         onlyRole(DEFAULT_ADMIN_ROLE)
     {
         _createMigration(_newState);
@@ -181,7 +180,7 @@ contract XPNMain is IXPN, XPNCore, AccessControlEnumerable {
     // @notice signal migration
     // @dev start the time lock for enzyme vault migration, users can withdraw but no longer allowed to deposit
     // @dev only callable by admin role
-    function signalMigration() external override onlyRole(DEFAULT_ADMIN_ROLE) {
+    function signalMigration() external onlyRole(DEFAULT_ADMIN_ROLE) {
         _signalMigration();
     }
 
@@ -189,7 +188,7 @@ contract XPNMain is IXPN, XPNCore, AccessControlEnumerable {
     // @dev requires the current time > enzyme dispatcher's timelock
     // @dev change the global state of the contract, users are allowed to deposit again
     // @dev only callable by admin role
-    function executeMigration() external override onlyRole(DEFAULT_ADMIN_ROLE) {
+    function executeMigration() external onlyRole(DEFAULT_ADMIN_ROLE) {
         _executeMigration();
     }
 
@@ -208,13 +207,8 @@ contract XPNMain is IXPN, XPNCore, AccessControlEnumerable {
     // @notice deposit denominated asset into the contract
     // @param amount of the denominated asset to deposit
     // @dev requires the restricted mode off
-    function deposit(uint256 _amount)
-        external
-        override
-        nonReentrant
-        returns (uint256)
-    {
-        if (_isRestricted()) {
+    function deposit(uint256 _amount) external nonReentrant returns (uint256) {
+        if (restricted) {
             require(
                 _isWalletWhitelisted(msg.sender),
                 "Wallet is not whitelisted"
@@ -230,7 +224,6 @@ contract XPNMain is IXPN, XPNCore, AccessControlEnumerable {
     // @return payoutAmounts array of amounts of the assets in the basket
     function withdraw(uint256 _amount)
         external
-        override
         nonReentrant
         returns (address[] memory payoutAssets, uint256[] memory payoutAmounts)
     {
@@ -316,7 +309,7 @@ contract XPNMain is IXPN, XPNCore, AccessControlEnumerable {
     function submitTrustedTradeOrders(
         bytes[] calldata _trades,
         address[] memory _venues
-    ) external override onlyRole(SETTLER_ROLE) returns (bool) {
+    ) external onlyRole(SETTLER_ROLE) returns (bool) {
         return _settleTrade(_trades, _venues);
     }
 
@@ -328,7 +321,7 @@ contract XPNMain is IXPN, XPNCore, AccessControlEnumerable {
         bytes[] calldata _orders,
         XPNSettlement.Pool[] calldata _txTypes,
         address[] memory _venues
-    ) external override onlyRole(SETTLER_ROLE) returns (bool) {
+    ) external onlyRole(SETTLER_ROLE) returns (bool) {
         return _settlePool(_orders, _txTypes, _venues);
     }
 
@@ -339,7 +332,7 @@ contract XPNMain is IXPN, XPNCore, AccessControlEnumerable {
     function submitTradeOrders(
         bytes[] calldata _trades,
         address[] memory _venues
-    ) external override ensureTrade returns (bool) {
+    ) external ensureTrade returns (bool) {
         return _settleTrade(_trades, _venues);
     }
 
@@ -351,7 +344,7 @@ contract XPNMain is IXPN, XPNCore, AccessControlEnumerable {
         bytes[] calldata _orders,
         XPNSettlement.Pool[] calldata _txTypes,
         address[] memory _venues
-    ) external override ensureTrade returns (bool) {
+    ) external ensureTrade returns (bool) {
         return _settlePool(_orders, _txTypes, _venues);
     }
 
@@ -359,52 +352,48 @@ contract XPNMain is IXPN, XPNCore, AccessControlEnumerable {
     // state getter functions
     /////////////////////////
 
-    function getDenominationAsset() external view override returns (address) {
-        return _getDenomAssetAddress();
+    function getExponentConfig()
+        external
+        view
+        returns (
+            address,
+            address,
+            address,
+            string memory,
+            address
+        )
+    {
+        return (
+            globalState.denomAssetAddress,
+            address(lptoken),
+            address(signalPool),
+            signalName,
+            _getAdminAddress()
+        );
     }
 
-    function getLPTokenAddress() external view override returns (address) {
-        return address(lptoken);
-    }
-
-    function getSharesAddress() external view override returns (address) {
-        return _getSharesAddress();
-    }
-
-    function getSignalName() external view override returns (string memory) {
-        return _getSignalName();
-    }
-
-    function getSignalPool() external view override returns (address) {
-        return _getSignalPool();
-    }
-
-    function getWhitelistPolicyAddress() external view returns (address) {
-        return _getWhitelistPolicyAddress();
-    }
-
-    function getPolicyAddress() external view returns (address) {
-        return _getPolicyAddress();
-    }
-
-    function getTrackedAssetAddress() external view returns (address) {
-        return _getTrackedAssetAddress();
-    }
-
-    function getIntegrationManagerAddress() external view returns (address) {
-        return _getIntegrationManagerAddress();
-    }
-
-    function getDeployerAddress() external view override returns (address) {
-        return _getDeployerAddress();
-    }
-
-    function getComptrollerAddress() external view override returns (address) {
-        return _getComptrollerAddress();
-    }
-
-    function getAdminAddress() external view returns (address) {
-        return _getAdminAddress();
+    function getEnzymeConfig()
+        external
+        view
+        returns (
+            address,
+            address,
+            address,
+            address,
+            address,
+            address,
+            address
+        )
+    {
+        return (
+            globalState.EZshares,
+            globalState.EZcomptroller,
+            globalState.EZwhitelistPolicy,
+            globalState.EZpolicy,
+            globalState.EZtrackedAssetAdapter,
+            globalState.EZintegrationManager,
+            globalState.EZdeployer
+        );
     }
 
     /////////////////////////
@@ -412,7 +401,7 @@ contract XPNMain is IXPN, XPNCore, AccessControlEnumerable {
     /////////////////////////
 
     function isRestricted() external view returns (bool) {
-        return _isRestricted();
+        return restricted;
     }
 
     function isWalletWhitelisted(address _wallet) external view returns (bool) {
@@ -428,6 +417,6 @@ contract XPNMain is IXPN, XPNCore, AccessControlEnumerable {
     }
 
     function isConfigInitialized() external view returns (bool) {
-        return _isConfigInitialized();
+        return configInitialized;
     }
 }

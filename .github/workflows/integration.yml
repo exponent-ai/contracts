@@ -32,11 +32,4 @@ jobs:
             fork-${{ hashFiles('env.sample') }}
             fork-
       - name: Test 🚨
-        run: npm run -s test:integration:report
-      - name: Test Report 📝
-        uses: dorny/test-reporter@v1
-        if: success() || failure()
-        with:
-          name: Integration Test Result
-          path: test-report.json
-          reporter: mocha-json
+        run: npm run -s test:integration:gas

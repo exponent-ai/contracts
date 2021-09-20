@@ -29,6 +29,7 @@ import { Role, grantRole } from "src/role";
 import { addAsset } from "src/addAsset";
 import { SignalService, defaultSignal } from "src/signal";
 import { feeConfig, deployerArgs } from "src/deployer";
+import { getShares } from "src/vaultGetters";
 
 dotenv.config();
 
@@ -149,11 +150,12 @@ describe("XPNMain", function () {
         "0x"
       );
       this.tradeAmount = "1804000000"; // 1 eth to usdc
+      this.enzymeConfig = await this.main.getEnzymeConfig();
       const prewethbal = await this.contracts.WETH.balanceOf(
-        this.main.getSharesAddress()
+        getShares(this.enzymeConfig)
       );
       const preusdcbal = await this.contracts.USDC.balanceOf(
-        this.main.getSharesAddress()
+        getShares(this.enzymeConfig)
       );
       const kyberArgs = kyberTakeOrderArgs({
         incomingAsset: this.contracts.USDC.address,
@@ -184,10 +186,10 @@ describe("XPNMain", function () {
       );
       this.tradeAmount = "1804000000"; // 1 eth to usdc
       const prewethbal = await this.contracts.WETH.balanceOf(
-        this.main.getSharesAddress()
+        getShares(this.enzymeConfig)
       );
       const preusdcbal = await this.contracts.USDC.balanceOf(
-        this.main.getSharesAddress()
+        getShares(this.enzymeConfig)
       );
       const kyberArgs = kyberTakeOrderArgs({
         incomingAsset: this.contracts.USDC.address,
@@ -218,10 +220,10 @@ describe("XPNMain", function () {
       );
       this.tradeAmount = "1804000000"; // 1 eth to usdc
       const prewethbal = await this.contracts.WETH.balanceOf(
-        this.main.getSharesAddress()
+        getShares(this.enzymeConfig)
       );
       const preusdcbal = await this.contracts.USDC.balanceOf(
-        this.main.getSharesAddress()
+        getShares(this.enzymeConfig)
       );
       const kyberArgs = kyberTakeOrderArgs({
         incomingAsset: this.contracts.USDC.address,

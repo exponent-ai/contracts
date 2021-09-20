@@ -187,11 +187,41 @@
   },
   {
     "inputs": [],
-    "name": "getComptrollerAddress",
+    "name": "getEnzymeConfig",
     "outputs": [
       {
         "internalType": "address",
-        "name": "",
+        "name": "EZshares",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "EZcomptroller",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "EZwhitelistPolicy",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "EZpolicy",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "EZtrackedAssetAdapter",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "EZintegrationManager",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "EZdeployer",
         "type": "address"
       }
     ],
@@ -200,37 +230,31 @@
   },
   {
     "inputs": [],
-    "name": "getDenominationAsset",
+    "name": "getExponentConfig",
     "outputs": [
       {
         "internalType": "address",
-        "name": "",
+        "name": "denomAsset",
         "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "getDeployerAddress",
-    "outputs": [
+      },
       {
         "internalType": "address",
-        "name": "",
+        "name": "lptoken",
         "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "getLPTokenAddress",
-    "outputs": [
+      },
       {
         "internalType": "address",
-        "name": "",
+        "name": "signalPool",
+        "type": "address"
+      },
+      {
+        "internalType": "string",
+        "name": "signalName",
+        "type": "string"
+      },
+      {
+        "internalType": "address",
+        "name": "admin",
         "type": "address"
       }
     ],
@@ -294,45 +318,6 @@
         "internalType": "uint256",
         "name": "",
         "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "getSharesAddress",
-    "outputs": [
-      {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "getSignalName",
-    "outputs": [
-      {
-        "internalType": "string",
-        "name": "",
-        "type": "string"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "getSignalPool",
-    "outputs": [
-      {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
       }
     ],
     "stateMutability": "view",

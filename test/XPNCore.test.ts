@@ -95,7 +95,7 @@ describe("XPNCore", function () {
         .returns(["ETH"]);
       // set mock for signal
       await expect(this.core.initializeFundConfig()).to.be.reverted;
-      expect(await this.core.configInitialized()).to.be.false;
+      expect(await this.core.isConfigInitialized()).to.be.false;
     });
     it("is called successfully", async function () {
       await this.intmanager.mock.addAuthUserForFund.returns();
@@ -104,7 +104,7 @@ describe("XPNCore", function () {
         .withArgs("signal1")
         .returns(["ETH"]);
       await this.core.initializeFundConfig();
-      expect(await this.core.configInitialized()).to.be.true;
+      expect(await this.core.isConfigInitialized()).to.be.true;
     });
     it("cannot be called twice", async function () {
       await this.intmanager.mock.addAuthUserForFund.returns();
@@ -170,6 +170,7 @@ describe("XPNCore", function () {
         .returns(["ETH"]);
       await this.core.initializeFundConfig();
       const amount = 1000;
+      await this.weth.mock.allowance.returns(0);
       await this.weth.mock.approve.returns(true);
       await this.comptroller.mock.buyShares
         .withArgs([this.core.address], [amount], [amount])
