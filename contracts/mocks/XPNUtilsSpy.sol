@@ -16,19 +16,16 @@
 // along with Exponent.  If not, see <http://www.gnu.org/licenses/>.
 
 pragma solidity ^0.8.0;
-import "./interface/AggregatorV3Interface.sol";
 
-library XPNUtils {
-    int256 public constant ONE = 1e18;
-    int256 public constant chainlinkONE = 1e8;
+import "../XPNUtils.sol";
 
+contract XPNUtilsSpy {
     function compareStrings(string memory first, string memory second)
         public
         pure
         returns (bool)
     {
-        return (keccak256(abi.encodePacked((first))) ==
-            keccak256(abi.encodePacked((second))));
+        return XPNUtils.compareStrings(first, second);
     }
 
     function parseChainlinkPrice(address _feed)
@@ -36,19 +33,6 @@ library XPNUtils {
         view
         returns (int256)
     {
-        AggregatorV3Interface priceFeed = AggregatorV3Interface(_feed);
-        (
-            uint80 roundID,
-            int256 price,
-            ,
-            uint256 timeStamp,
-            uint80 answeredInRound
-        ) = priceFeed.latestRoundData();
-
-        require(timeStamp != 0, "Chainlink: round is not complete");
-        require(answeredInRound >= roundID, "Chainlink: stale data");
-        require(price != 0, "Chainlink: returned 0");
-        int256 priceScaled = (price * ONE) / int256(10)**priceFeed.decimals();
-        return priceScaled;
+        return XPNUtils.parseChainlinkPrice(_feed);
     }
 }
