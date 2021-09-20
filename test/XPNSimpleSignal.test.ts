@@ -53,9 +53,6 @@ describe("Basic Signal", function () {
     });
   });
 
-
-
-
   describe("register signal", function () {
     it("can register a signal if whitelisted", async function () {
       await this.simpleSignal
@@ -97,6 +94,14 @@ describe("Basic Signal", function () {
       await this.simpleSignal
         .connect(this.signalProvider1)
         .submitSignal("testsignal1", ["BTC", "ETH", "USDT"], [1, 2, 1], "0x");
+    });
+    it("revert if weight and symbol length mismatch", async function () {
+      await this.simpleSignal
+        .connect(this.signalProvider1)
+        .registerSignal("testsignal1", "Simple", ["BTC", "ETH", "XPN"]);
+      await expect(this.simpleSignal
+        .connect(this.signalProvider1)
+        .submitSignal("testsignal1", ["BTC", "ETH", "USDT"], [1, 2, 1, 4], "0x")).to.be.reverted;
     });
 
     it("Can't submit to unregistered signal ", async function () {

@@ -28,7 +28,7 @@ contract XPNSignal is ISignal, Ownable {
     }
     mapping(address => mapping(string => bool)) ownSignals;
     mapping(string => int256[]) signalsWeight;
-    mapping(string => string[]) signalsReference;
+    mapping(string => string[]) signalsSymbol;
     mapping(string => signalMetaData) signalsMetaData;
     mapping(address => bool) signalProviderWhitelist;
 
@@ -36,7 +36,7 @@ contract XPNSignal is ISignal, Ownable {
     event SignalProviderWhitelisted(address wallet);
     event SignalProviderDeWhitelisted(address wallet);
 
-    constructor(){
+    constructor() {
         whitelistsignalProvider(msg.sender);
     }
 
@@ -64,6 +64,7 @@ contract XPNSignal is ISignal, Ownable {
             signalExist: true,
             signalActive: false
         });
+        signalsSymbol[signalName] = symbols;
     }
 
     // @notice whitelist wallet by address
@@ -110,8 +111,11 @@ contract XPNSignal is ISignal, Ownable {
         bytes calldata data
     ) external override {
         require(ownSignals[msg.sender][signalName], "not your signal");
+        require(
+            weights.length == signalsSymbol[signalName].length,
+            "signal length mismatch"
+        );
         signalsWeight[signalName] = weights;
-        signalsReference[signalName] = ref;
         signalsMetaData[signalName].signalActive = true;
     }
 
@@ -133,7 +137,7 @@ contract XPNSignal is ISignal, Ownable {
             signalsMetaData[signalName].signalActive,
             "signal not available"
         );
-        return signalsReference[signalName];
+        return signalsSymbol[signalName];
     }
 
     // @notice get symbol list of the signal
