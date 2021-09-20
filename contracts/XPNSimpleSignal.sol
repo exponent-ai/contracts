@@ -18,8 +18,9 @@
 pragma solidity ^0.8.0;
 
 import "./interface/ISignal.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract XPNSignal is ISignal {
+contract XPNSignal is ISignal, Ownable {
     struct signalMetaData {
         string signalType;
         bool signalExist;
@@ -29,8 +30,15 @@ contract XPNSignal is ISignal {
     mapping(string => int256[]) signalsWeight;
     mapping(string => string[]) signalsReference;
     mapping(string => signalMetaData) signalsMetaData;
+    mapping(address => bool) signalProviderWhitelist;
 
     address[] assetAddress;
+    event SignalProviderWhitelisted(address wallet);
+    event SignalProviderDeWhitelisted(address wallet);
+
+    constructor(){
+        whitelistsignalProvider(msg.sender);
+    }
 
     // @notice register a new signal. caller will own the signal
     // @param signalName unique identifier of the signal.
@@ -41,15 +49,45 @@ contract XPNSignal is ISignal {
         string memory signalType,
         string[] memory symbols
     ) external override returns (string memory) {
+        require(
+            _signalProviderIsWhitelisted(msg.sender),
+            "Wallet is not whitelisted"
+        );
+
         if (signalsMetaData[signalName].signalExist) {
             revert("signal already exist");
         }
+
         ownSignals[msg.sender][signalName] = true;
         signalsMetaData[signalName] = signalMetaData({
             signalType: signalType,
             signalExist: true,
             signalActive: false
         });
+    }
+
+    // @notice whitelist wallet by address
+    // @param address of the wallet to whitelist
+    // @dev only callable by owner
+    function whitelistsignalProvider(address wallet) public onlyOwner {
+        signalProviderWhitelist[wallet] = true;
+        emit SignalProviderWhitelisted(wallet);
+    }
+
+    // @notice un-whitelist wallet by address
+    // @param address of the wallet to un-whitelist
+    // @dev only callable by owner
+    function deWhitelistsignalProvider(address wallet) public onlyOwner {
+        signalProviderWhitelist[wallet] = false;
+        emit SignalProviderDeWhitelisted(wallet);
+    }
+
+    function _signalProviderIsWhitelisted(address wallet)
+        private
+        view
+        returns (bool)
+    {
+        return signalProviderWhitelist[wallet];
     }
 
     // @notice make a signal inactive
