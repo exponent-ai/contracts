@@ -56,6 +56,8 @@ contract XPNCore is XPNVault, XPNSettlement, XPNPortfolio {
     State private globalState;
     ISignal private signalPool;
     string private signalName;
+    // @notice the target portfolio value to maintain after
+    // the rebalance, default to 98%
     int256 expectedEfficiency;
     // @notice the contract state after successful migration
     State private postMigrationState;
@@ -126,7 +128,7 @@ contract XPNCore is XPNVault, XPNSettlement, XPNPortfolio {
             );
         globalState.EZcomptroller = comptrollerAddress;
         globalState.EZshares = sharesAddress;
-        expectedEfficiency = 98e16;
+        expectedEfficiency = 98e16; // expected efficiency is default to 98%
     }
 
     /////////////////////////
