@@ -99,7 +99,12 @@ abstract contract XPNVault is ReentrancyGuard {
     {
         _redeemFeesHook(_feeManager, _fees);
         address shares = _getSharesAddress();
-        uint256 collectedFees = IERC20(shares).totalSupply() -
+        // the redeemFeesHook is expected to inflate the enzyme shares of the enzyme vault manager (this contract)
+
+        // at this point, the exponent vault holds shares of its users as well as shares representing accrued fees.
+        // the difference between this contract's enzyme shares and exponent vault tokens represents
+        // the amount of fees owed to exponent vault's admin
+        uint256 collectedFees = IERC20(shares).balanceOf(address(this)) -
             lptoken.totalSupply();
         require(collectedFees > 0, "_redeemFees: no fee shares available");
         (payoutAssets, payoutAmounts) = _withdrawHook(collectedFees);
