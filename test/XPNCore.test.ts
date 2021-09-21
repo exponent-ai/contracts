@@ -129,7 +129,7 @@ describe("XPNCore", function () {
       await this.weth.mock.allowance.returns(0);
       await this.weth.mock.approve.returns(true);
       await this.comptroller.mock.buyShares
-        .withArgs([this.core.address], [amount], [amount])
+        .withArgs([this.core.address], [amount], [1])
         .returns([amount]);
       await this.core.depositHook(amount);
     });

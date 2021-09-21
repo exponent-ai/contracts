@@ -337,15 +337,17 @@ contract XPNCore is Pausable, XPNVault, XPNSettlement, XPNPortfolio {
         );
         address[] memory buyer = new address[](1);
         uint256[] memory amount = new uint256[](1);
+        uint256[] memory expect = new uint256[](1);
         buyer[0] = address(this);
         amount[0] = _amount;
+        expect[0] = 1;
         uint256[] memory sharesBought = IComptroller(globalState.EZcomptroller)
             .buyShares(
                 buyer, // this contract as a single buyer
                 amount, // amount of shares to purchase
-                amount // expect at least the specified amount
+                expect // expect at least 1 share
             );
-        return sharesBought[0]; // should have bought only a single share
+        return sharesBought[0]; // should have bought only a single share amount
     }
 
     // @dev implements actual enzyme share redemption on the comptroller
