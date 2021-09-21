@@ -162,27 +162,37 @@ contract SimpleIssuance is ReentrancyGuard, AccessControl, Pausable {
     {
         require(_amount > 0, "issuance: amount can't be zero");
         denomAsset.safeTransferFrom(msg.sender, address(this), _amount);
-        roundData[currentRoundId].totalDeposit += _amount;
-        uint256 totalDeposit = roundData[currentRoundId].totalDeposit;
+        uint256 _totalDeposit = roundData[currentRoundId].totalDeposit +
+            _amount;
         uint256 goal = roundData[currentRoundId].goal;
-        if (totalDeposit == goal) {
+        uint256 realAmount = _amount;
+        if (_totalDeposit > goal) {
+            uint256 change = _totalDeposit - goal;
+            realAmount -= change;
+            roundData[currentRoundId].totalDeposit += realAmount;
+            _setCurrentRoundStage(Stages.GoalMet);
+            // send the excess amount back to caller
+            denomAsset.transfer(msg.sender, change);
+        }
+        if (_totalDeposit == goal) {
+            roundData[currentRoundId].totalDeposit += realAmount;
             _setCurrentRoundStage(Stages.GoalMet);
         }
-        if (totalDeposit > goal) {
-            revert("issuance: total deposits exceeded goal");
+        if (_totalDeposit < goal) {
+            roundData[currentRoundId].totalDeposit += realAmount;
         }
         // create user ticket
         if (!userTicket[currentRoundId][msg.sender].exists) {
             userTicket[currentRoundId][msg.sender] = Ticket({
-                amount: _amount,
+                amount: realAmount,
                 redeemed: false,
                 exists: true
             });
         } else {
             // or increment user ticket's amount
-            userTicket[currentRoundId][msg.sender].amount += _amount;
+            userTicket[currentRoundId][msg.sender].amount += realAmount;
         }
-        emit PurchaseTicket(msg.sender, _amount);
+        emit PurchaseTicket(msg.sender, realAmount);
     }
 
     // @notice sell unredeemed ticket of the current round for denominated asset

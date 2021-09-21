@@ -214,11 +214,11 @@ describe("SimpleIssuance", function () {
         "LPToken",
         await this.vault.vaultToken()
       );
-      const startGoal = 100000;
+      this.startGoal = 100000;
 
       this.issuance = await Issuance.deploy(
         this.issuanceManager.address,
-        startGoal,
+        this.startGoal,
         this.USDC.address,
         this.vaultToken.address,
         this.vault.address
@@ -231,14 +231,16 @@ describe("SimpleIssuance", function () {
       ).to.be.revertedWith("issuance: amount can't be zero");
     });
     it("does not allow total amount to exceed goal", async function () {
-      this.USDC.mint(this.alice.address, 100001);
+      const change = 1
+      this.USDC.mint(this.alice.address, this.startGoal + change);
       await this.USDC.connect(this.alice).approve(
         this.issuance.address,
-        100001
+        this.startGoal + change
       );
-      await expect(
-        this.issuance.connect(this.alice).purchaseTicket(100001)
-      ).to.be.revertedWith("issuance: total deposits exceeded goal");
+      await this.issuance.connect(this.alice).purchaseTicket(this.startGoal + change);
+      const { amount: ticketAmount } = await this.issuance.userTicket(1, this.alice.address)
+      expect(await this.USDC.balanceOf(this.alice.address)).to.equal(change);
+      expect(ticketAmount).to.equal(this.startGoal);
     });
     it("does not change current stage if the goal is not met", async function () {
       this.USDC.mint(this.alice.address, 10000);
