@@ -77,10 +77,6 @@ contract XPNCore is Pausable, XPNVault, XPNSettlement, XPNPortfolio {
     uint256 constant SHARES_TIMELOCK = 0;
     // @notice enzyme integration manager ID for integration
     uint256 constant DEFI_INTEGRATION = 0;
-    // @notice enzyme fees ID for fees invocation
-    uint256 constant FEE_INVOCATION = 0;
-    // @notice enzyme fees ID for fees payout
-    uint256 constant FEE_PAYOUT = 0;
 
     bool public restricted;
 
@@ -100,7 +96,6 @@ contract XPNCore is Pausable, XPNVault, XPNSettlement, XPNPortfolio {
     event AssetConfigAdded(string symbol, address asset, address feed);
     event AssetConfigRemoved(string symbol);
     event NewSignal(address signal);
-    event NewExpectedEfficiency(int256 efficiency);
     event MigrationCreated(State postMigrationState);
     event MigrationSignaled();
     event MigrationExecuted();
@@ -125,16 +120,11 @@ contract XPNCore is Pausable, XPNVault, XPNSettlement, XPNPortfolio {
                 globalState.EZfeeConfig, // fees configuration
                 "" // no policy manager data
             );
-
-        address[] memory buyersToAdd = new address[](1);
-        buyersToAdd[0] = address(this);
-        address[] memory buyersToRemove = new address[](0);
-        IPolicyManager(globalState.EZpolicy).enablePolicyForFund(
+        XPNUtils.enforceSoleEnzymeDepositor(
             globalState.EZcomptroller,
-            globalState.EZwhitelistPolicy,
-            abi.encode(buyersToAdd, buyersToRemove)
+            globalState.EZpolicy,
+            globalState.EZwhitelistPolicy
         );
-
         expectedEfficiency = 98e16;
     }
 
@@ -183,10 +173,12 @@ contract XPNCore is Pausable, XPNVault, XPNSettlement, XPNPortfolio {
 
     function _whitelistWallet(address _wallet) internal {
         walletWhitelist[_wallet] = true;
+        emit WalletWhitelisted(_wallet);
     }
 
     function _deWhitelistWallet(address _wallet) internal {
         walletWhitelist[_wallet] = false;
+        emit WalletDeWhitelisted(_wallet);
     }
 
     function _whitelistVenue(address _venue) internal {
@@ -256,25 +248,19 @@ contract XPNCore is Pausable, XPNVault, XPNSettlement, XPNPortfolio {
 
     // @dev enzyme-specific functionality to track zero balance asset
     function _addTrackedAsset(address _asset) internal {
-        address[] memory assets = new address[](1);
-        assets[0] = _asset;
-        bytes memory addTrackedArgs = abi.encode(assets);
-        IComptroller(globalState.EZcomptroller).callOnExtension(
+        XPNUtils.addEnzymeTrackedAsset(
+            globalState.EZcomptroller,
             globalState.EZintegrationManager,
-            1, // actionID to add tracked asset = 1
-            abi.encode(assets)
+            _asset
         );
     }
 
     // @dev enzyme-specific functionality to remove tracked asset
     function _removeTrackedAsset(address _asset) internal {
-        address[] memory assets = new address[](1);
-        assets[0] = _asset;
-        bytes memory removeTrackedArgs = abi.encode(assets);
-        IComptroller(globalState.EZcomptroller).callOnExtension(
+        XPNUtils.removeEnzymeTrackedAsset(
+            globalState.EZcomptroller,
             globalState.EZintegrationManager,
-            2, // actionID to remove tracked asset = 2
-            abi.encode(assets)
+            _asset
         );
     }
 
@@ -335,19 +321,8 @@ contract XPNCore is Pausable, XPNVault, XPNSettlement, XPNPortfolio {
             address(globalState.EZcomptroller),
             _amount
         );
-        address[] memory buyer = new address[](1);
-        uint256[] memory amount = new uint256[](1);
-        uint256[] memory expect = new uint256[](1);
-        buyer[0] = address(this);
-        amount[0] = _amount;
-        expect[0] = 1;
-        uint256[] memory sharesBought = IComptroller(globalState.EZcomptroller)
-            .buyShares(
-                buyer, // this contract as a single buyer
-                amount, // amount of shares to purchase
-                expect // expect at least 1 share
-            );
-        return sharesBought[0]; // should have bought only a single share amount
+
+        return XPNUtils.buyEnzymeShares(globalState.EZcomptroller, _amount);
     }
 
     // @dev implements actual enzyme share redemption on the comptroller
@@ -356,14 +331,7 @@ contract XPNCore is Pausable, XPNVault, XPNSettlement, XPNPortfolio {
         override
         returns (address[] memory, uint256[] memory)
     {
-        address[] memory additionalAssets = new address[](0);
-        address[] memory assetsToSkip = new address[](0);
-        return
-            IComptroller(globalState.EZcomptroller).redeemSharesDetailed(
-                _amount, // quantity of shares to redeem
-                additionalAssets, // no additional assets
-                assetsToSkip // don't skip any assets
-            );
+        return XPNUtils.redeemEnzymeShares(globalState.EZcomptroller, _amount);
     }
 
     function _venueIsWhitelisted(address _venue)
@@ -434,17 +402,10 @@ contract XPNCore is Pausable, XPNVault, XPNSettlement, XPNPortfolio {
         internal
         override
     {
-        // calculate and settle the current fees accrued on the fund
-        IComptroller(globalState.EZcomptroller).callOnExtension(
+        XPNUtils.invokeAndPayoutEnzymeFees(
+            globalState.EZcomptroller,
             _feeManager,
-            FEE_INVOCATION, // 0 is action ID for invoking fees
-            ""
-        );
-        // payout the outstanding shares to enzyme vault owner (this contract)
-        IComptroller(globalState.EZcomptroller).callOnExtension(
-            _feeManager,
-            FEE_PAYOUT, // 1 is action ID for payout of outstanding shares
-            abi.encode(_fees) // payout using all the fees available ie. performance and management fee
+            _fees
         );
     }
 
@@ -465,7 +426,10 @@ contract XPNCore is Pausable, XPNVault, XPNSettlement, XPNPortfolio {
                 ""
             );
 
-        (postMigrationState.EZcomptroller, postMigrationState.EZshares) = (newComptrollerProxy, globalState.EZshares);
+        (postMigrationState.EZcomptroller, postMigrationState.EZshares) = (
+            newComptrollerProxy,
+            globalState.EZshares
+        );
         emit MigrationCreated(_newState);
     }
 
@@ -485,14 +449,10 @@ contract XPNCore is Pausable, XPNVault, XPNSettlement, XPNPortfolio {
             globalState.EZshares
         );
         globalState = postMigrationState;
-        address[] memory buyersToAdd = new address[](1);
-        address[] memory buyersToRemove = new address[](0);
-        buyersToAdd[0] = address(this);
-
-        IPolicyManager(postMigrationState.EZpolicy).enablePolicyForFund(
+        XPNUtils.enforceSoleEnzymeDepositor(
             postMigrationState.EZcomptroller,
-            postMigrationState.EZwhitelistPolicy,
-            abi.encode(buyersToAdd, buyersToRemove)
+            postMigrationState.EZpolicy,
+            postMigrationState.EZwhitelistPolicy
         );
         _unpause();
         emit MigrationExecuted();
@@ -513,7 +473,10 @@ contract XPNCore is Pausable, XPNVault, XPNSettlement, XPNPortfolio {
     function _setSignal(address _signalPoolAddress, string memory _signalName)
         internal
     {
-        (globalState.signal, globalState.signalName) = (_signalPoolAddress, _signalName);
+        (globalState.signal, globalState.signalName) = (
+            _signalPoolAddress,
+            _signalName
+        );
     }
 
     function _getSignal() internal view override returns (int256[] memory) {
@@ -526,7 +489,10 @@ contract XPNCore is Pausable, XPNVault, XPNSettlement, XPNPortfolio {
         override
         returns (string[] memory)
     {
-        return ISignal(globalState.signal).getSignalSymbols(globalState.signalName);
+        return
+            ISignal(globalState.signal).getSignalSymbols(
+                globalState.signalName
+            );
     }
 
     function _getExpectedEfficiency() internal view override returns (int256) {
@@ -537,7 +503,5 @@ contract XPNCore is Pausable, XPNVault, XPNSettlement, XPNPortfolio {
     // @dev note 1e18 = 100% default is 98e16 (98%)
     function _setExpectedEfficiency(int256 _expectedEfficiency) internal {
         expectedEfficiency = _expectedEfficiency;
-        emit NewExpectedEfficiency(_expectedEfficiency);
     }
-
 }

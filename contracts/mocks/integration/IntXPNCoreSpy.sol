@@ -63,12 +63,20 @@ contract IntXPNCoreSpy is XPNCore {
         _whitelistAsset(_asset);
     }
 
-    function deWhitelistVenue(address _venue) external {
-        _deWhitelistVenue(_venue);
+    function whitelistWallet(address _wallet) external {
+        _whitelistWallet(_wallet);
+    }
+
+    function deWhitelistWallet(address _wallet) external {
+        _deWhitelistWallet(_wallet);
     }
 
     function deWhitelistAsset(address _asset) external {
         _deWhitelistAsset(_asset);
+    }
+
+    function deWhitelistVenue(address _venue) external {
+        _deWhitelistVenue(_venue);
     }
 
     function redeemFeesHook(address _feeManager, address[] memory _fees)
@@ -121,7 +129,6 @@ contract IntXPNCoreSpy is XPNCore {
         return globalState.EZpolicy;
     }
 
-
     function getTrackedAssetAddress() external view returns (address) {
         return globalState.EZtrackedAssetAdapter;
     }
@@ -136,6 +143,10 @@ contract IntXPNCoreSpy is XPNCore {
 
     function getComptrollerAddress() external view returns (address) {
         return globalState.EZcomptroller;
+    }
+
+    function isWalletWhitelist(address _wallet) external view returns (bool) {
+        return walletWhitelist[_wallet];
     }
 
     function isVenueWhitelist(address _venue) external view returns (bool) {

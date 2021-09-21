@@ -1,4 +1,3 @@
-
 // Copyright (C) 2021 Exponent
 
 // This file is part of Exponent.
@@ -203,10 +202,7 @@ contract XPNMain is XPNCore, AccessControlEnumerable {
     // @dev requires the restricted mode off
     function deposit(uint256 _amount) external nonReentrant returns (uint256) {
         if (restricted) {
-            require(
-                walletWhitelist[msg.sender],
-                "Wallet is not whitelisted"
-            );
+            require(walletWhitelist[msg.sender], "Wallet is not whitelisted");
             return _deposit(_amount);
         } else {
             return _deposit(_amount);
@@ -240,14 +236,6 @@ contract XPNMain is XPNCore, AccessControlEnumerable {
     // portfolio  functions
     /////////////////////////
 
-    // @notice distance between current portfolio and target signal in % term
-    // @dev 100% = 1e18.distance between target vs current portfolio allocation (how much value needed to be move) (in %)
-    // calculate as sum(token-wise diff)/ 2
-    // @return int256 distance
-    function signalPortfolioDiffPercent() external view returns (int256) {
-        return _signalPortfolioDiffPercent();
-    }
-
     // @notice calculate different between current portfolio position and target from signal
     // in balance of coresponding erc20
     // @dev 100% = 1e18.
@@ -260,28 +248,6 @@ contract XPNMain is XPNCore, AccessControlEnumerable {
         return _signalPortfolioDiffToken();
     }
 
-    // @notice calculate different between current portfolio position and target from signal in % term
-    // @dev 100% = 1e18
-    // @return int256 array % different from target for each asset (directional)
-    function signalPortfolioDiffAllocation()
-        external
-        view
-        returns (int256[] memory)
-    {
-        return _signalPortfolioDiffAllocation();
-    }
-
-    // @notice calculate different between current portfolio position and target from signal in denominated asset value
-    // @dev 100% = 1e18
-    // @return int256 array denominated asset value different from target for each asset (directional)
-    function signalPortfolioDiffValue()
-        external
-        view
-        returns (int256[] memory)
-    {
-        return _signalPortfolioDiffValue();
-    }
-
     // @notice set expected trade efficiency
     // @dev note 1e18 = 100% default is 98e16 (98%)
     // @dev only callable by admin role
@@ -291,7 +257,6 @@ contract XPNMain is XPNCore, AccessControlEnumerable {
     {
         _setExpectedEfficiency(_expectedEfficiency);
     }
-
 
     /////////////////////////
     // settlement functions

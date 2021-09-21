@@ -140,6 +140,25 @@ describe("XPNCore", function () {
     });
   });
 
+  describe("whitelistWallet", async function () {
+    it("emits event when successfully whitelisted", async function () {
+      await expect(this.core.whitelistWallet(this.mockAddress))
+        .to.emit(this.core, "WalletWhitelisted")
+        .withArgs(this.mockAddress);
+      expect(await this.core.isWalletWhitelist(this.mockAddress)).to.be.true;
+    });
+  });
+
+  describe("deWhitelistWallet", async function () {
+    it("emits an event when successfully dewhitelisted", async function () {
+      await expect(this.core.deWhitelistWallet(this.mockAddress))
+        .to.emit(this.core, "WalletDeWhitelisted")
+        .withArgs(this.mockAddress);
+      expect(await this.core.isWalletWhitelist(this.mockAddress)).to.be.false;
+    });
+  });
+
+
   describe("whitelistVenue", async function () {
     it("emits event when successfully whitelisted", async function () {
       await expect(this.core.whitelistVenue(this.mockAddress))
