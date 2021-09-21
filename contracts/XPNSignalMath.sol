@@ -25,10 +25,9 @@ library XPNSignalMath {
 
     int256 public constant ONE = 1e18;
 
-    // @notice deposit denominated asset into the contract
-    // @param _amount amount to be deposited
-    // @dev denominated asset must be approved first
-    // @return amount of LP tokens minted
+    // @notice normalize array
+    // @param x array
+    // @return scaled array x with size = ONE
     function normalize(int256[] memory x)
         internal
         pure
