@@ -84,6 +84,11 @@ describe("SignalMath", function () {
         )
       ).deep.equal(["-2", "6"]);
     });
+    it("revert if array size mismatch", async function () {
+      await expect(
+        this.testSignalMath.callElementWiseAdd([1, 2], [3, 4, 5])
+      ).to.be.revertedWith("XPNSignalMath: array size mismatch");
+    });
   });
 
   describe("ElementWiseSub", function () {
@@ -98,6 +103,11 @@ describe("SignalMath", function () {
           await this.testSignalMath.callElementWiseSub([1, 2], [-3, 4])
         )
       ).deep.equal(["4", "-2"]);
+    });
+    it("revert if array size mismatch", async function () {
+      await expect(
+        this.testSignalMath.callElementWiseSub([1, 2], [3, 4, 5])
+      ).to.be.revertedWith("XPNSignalMath: array size mismatch");
     });
   });
 
@@ -120,6 +130,11 @@ describe("SignalMath", function () {
         )
       ).deep.equal(["-3", "8"]);
     });
+    it("revert if array size mismatch", async function () {
+      await expect(
+        this.testSignalMath.callElementWiseMul([1, 2], [3, 4, 5])
+      ).to.be.revertedWith("XPNSignalMath: array size mismatch");
+    });
   });
 
   describe("ElementWiseDiv", function () {
@@ -140,6 +155,11 @@ describe("SignalMath", function () {
           )
         )
       ).deep.equal(["-3", "5"]);
+    });
+    it("revert if array size mismatch", async function () {
+      await expect(
+        this.testSignalMath.callElementWiseDiv([1, 2], [3, 4, 5])
+      ).to.be.revertedWith("XPNSignalMath: array size mismatch");
     });
   });
 

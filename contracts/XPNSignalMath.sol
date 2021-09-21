@@ -53,6 +53,7 @@ library XPNSignalMath {
         pure
         returns (int256[] memory out_array)
     {
+        require(x.length == y.length, "XPNSignalMath: array size mismatch");
         out_array = new int256[](x.length);
         for (uint256 i = 0; i < x.length; i++) {
             out_array[i] = (x[i] + y[i]);
@@ -68,6 +69,7 @@ library XPNSignalMath {
         pure
         returns (int256[] memory out_array)
     {
+        require(x.length == y.length, "XPNSignalMath: array size mismatch");
         out_array = new int256[](x.length);
         for (uint256 i = 0; i < x.length; i++) {
             out_array[i] = (x[i] - y[i]);
@@ -83,6 +85,7 @@ library XPNSignalMath {
         pure
         returns (int256[] memory out_array)
     {
+        require(x.length == y.length, "XPNSignalMath: array size mismatch");
         out_array = new int256[](x.length);
         for (uint256 i = 0; i < x.length; i++) {
             out_array[i] = ((x[i] * y[i]) / ONE);
@@ -98,6 +101,7 @@ library XPNSignalMath {
         pure
         returns (int256[] memory out_array)
     {
+        require(x.length == y.length, "XPNSignalMath: array size mismatch");
         out_array = new int256[](x.length);
         for (uint256 i = 0; i < x.length; i++) {
             out_array[i] = ((x[i] * ONE) / y[i]);
