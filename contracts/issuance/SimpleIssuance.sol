@@ -262,8 +262,7 @@ contract SimpleIssuance is ReentrancyGuard, AccessControl, Pausable {
             "issuance: user vault tokens have been redeemed"
         );
         // calculate the shares of user to the current round shares using the proportion of their deposit
-        uint256 fraction = (ticket.amount * 1e18) / round.totalDeposit;
-        uint256 claimable = (round.totalShares * fraction) / 1e18;
+        uint256 claimable = ((round.totalShares * ticket.amount) / round.totalDeposit);
         // transfer the share of vault tokens to end user.
         userTicket[_roundId][msg.sender].redeemed = true;
         vaultToken.safeTransfer(msg.sender, claimable);

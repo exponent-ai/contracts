@@ -141,7 +141,6 @@ describe("XPNCore", function () {
         to: multicaller.address,
         amount: depositAmount,
       });
-      await this.core.initializeFundConfig();
       await multicaller.approve(this.core.address, depositAmount);
       await multicaller.deposit(depositAmount);
       await multicaller.multiWithdraws([withdrawIncrement, withdrawIncrement]);
