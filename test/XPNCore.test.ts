@@ -38,6 +38,7 @@ describe("XPNCore", function () {
       this.deployer,
       Policymanager.abi
     );
+
     // deploy comptroller mock
     const Comptroller = await artifacts.readArtifact("IComptroller");
     this.comptroller = await deployMockContract(this.deployer, Comptroller.abi);
@@ -64,6 +65,7 @@ describe("XPNCore", function () {
       this.admin.address,
       this.settler.address,
       this.signal.address,
+      "signal1",
       this.weth.address,
       "ETH", // ETH denominated
       this.funddeployer.address,
@@ -81,60 +83,23 @@ describe("XPNCore", function () {
       this.comptroller.address,
       this.shares.address
     );
+    await this.signal.mock.getSignalSymbols
+      .withArgs("signal1")
+      .returns(["ETH"]);
+    await this.intmanager.mock.addAuthUserForFund.returns();
+    await this.policymanager.mock.enablePolicyForFund.returns();
+
     this.core = await Core.deploy(constructorArgs, "EX-ETH", "EX-ETH");
     await this.core.deployed();
-    await this.core.setSignal(this.signal.address, "signal1");
   });
 
-  describe("initializeFundConfig", async function () {
-    it("is reverted when thrown", async function () {
-      await this.intmanager.mock.addAuthUserForFund.reverts();
-      await this.policymanager.mock.enablePolicyForFund.reverts();
-      await this.signal.mock.getSignalSymbols
-        .withArgs("signal1")
-        .returns(["ETH"]);
-      // set mock for signal
-      await expect(this.core.initializeFundConfig()).to.be.reverted;
-      expect(await this.core.isConfigInitialized()).to.be.false;
-    });
-    it("is called successfully", async function () {
-      await this.intmanager.mock.addAuthUserForFund.returns();
-      await this.policymanager.mock.enablePolicyForFund.returns();
-      await this.signal.mock.getSignalSymbols
-        .withArgs("signal1")
-        .returns(["ETH"]);
-      await this.core.initializeFundConfig();
-      expect(await this.core.isConfigInitialized()).to.be.true;
-    });
-    it("cannot be called twice", async function () {
-      await this.intmanager.mock.addAuthUserForFund.returns();
-      await this.policymanager.mock.enablePolicyForFund.returns();
-      await this.signal.mock.getSignalSymbols
-        .withArgs("signal1")
-        .returns(["ETH"]);
-      await this.core.initializeFundConfig();
-      await expect(this.core.initializeFundConfig()).to.be.revertedWith(
-        "XPNCore: config already initialized"
-      );
-    });
-  });
   describe("addTrackedAssets", async function () {
-    it("cannot be called before config is initialized", async function () {
-      await expect(
-        this.core.addTrackedAsset(this.mockAddress)
-      ).to.be.revertedWith("XPNCore: config not yet initialized");
-    });
-    it("emits an event when called successfully", async function () {
-      await this.intmanager.mock.addAuthUserForFund.returns();
-      await this.policymanager.mock.enablePolicyForFund.returns();
+    it("is called successfully", async function () {
       await this.signal.mock.getSignalSymbols
         .withArgs("signal1")
         .returns(["ETH"]);
-      await this.core.initializeFundConfig();
       await this.comptroller.mock.callOnExtension.returns();
-      await expect(this.core.addTrackedAsset(this.mockAddress))
-        .to.emit(this.core, "TrackedAssetAdded")
-        .withArgs(this.mockAddress);
+      await this.core.addTrackedAsset(this.mockAddress)
     });
     it("is reverted when thrown", async function () {
       await this.comptroller.mock.callOnExtension.reverts();
@@ -148,27 +113,18 @@ describe("XPNCore", function () {
       await expect(this.core.removeTrackedAsset(this.mockAddress)).to.be
         .reverted;
     });
-    it("emits an event when called successfully", async function () {
+    it("is called successfully", async function () {
       await this.comptroller.mock.callOnExtension.returns();
-      await expect(this.core.removeTrackedAsset(this.mockAddress))
-        .to.emit(this.core, "TrackedAssetRemoved")
-        .withArgs(this.mockAddress);
+      await this.core.removeTrackedAsset(this.mockAddress)
     });
   });
 
   describe("depositHook", async function () {
-    it("cannot be called before config is initialized", async function () {
-      await expect(this.core.depositHook(1000)).to.be.revertedWith(
-        "XPNCore: config not yet initialized"
-      );
-    });
     it("is called successfully", async function () {
       await this.intmanager.mock.addAuthUserForFund.returns();
-      await this.policymanager.mock.enablePolicyForFund.returns();
       await this.signal.mock.getSignalSymbols
         .withArgs("signal1")
         .returns(["ETH"]);
-      await this.core.initializeFundConfig();
       const amount = 1000;
       await this.weth.mock.allowance.returns(0);
       await this.weth.mock.approve.returns(true);
@@ -189,7 +145,7 @@ describe("XPNCore", function () {
       await expect(this.core.whitelistVenue(this.mockAddress))
         .to.emit(this.core, "VenueWhitelisted")
         .withArgs(this.mockAddress);
-      expect(await this.core.venueWhitelist(this.mockAddress)).to.be.true;
+      expect(await this.core.isVenueWhitelist(this.mockAddress)).to.be.true;
     });
   });
 
@@ -198,7 +154,7 @@ describe("XPNCore", function () {
       await expect(this.core.deWhitelistVenue(this.mockAddress))
         .to.emit(this.core, "VenueDeWhitelisted")
         .withArgs(this.mockAddress);
-      expect(await this.core.venueWhitelist(this.mockAddress)).to.be.false;
+      expect(await this.core.isVenueWhitelist(this.mockAddress)).to.be.false;
     });
   });
 
@@ -207,7 +163,7 @@ describe("XPNCore", function () {
       await expect(this.core.whitelistAsset(this.mockAddress))
         .to.emit(this.core, "AssetWhitelisted")
         .withArgs(this.mockAddress);
-      expect(await this.core.assetWhitelist(this.mockAddress)).to.be.true;
+      expect(await this.core.isAssetWhitelist(this.mockAddress)).to.be.true;
     });
   });
 
@@ -216,7 +172,7 @@ describe("XPNCore", function () {
       await expect(this.core.deWhitelistAsset(this.mockAddress))
         .to.emit(this.core, "AssetDeWhitelisted")
         .withArgs(this.mockAddress);
-      expect(await this.core.assetWhitelist(this.mockAddress)).to.be.false;
+      expect(await this.core.isAssetWhitelist(this.mockAddress)).to.be.false;
     });
   });
 

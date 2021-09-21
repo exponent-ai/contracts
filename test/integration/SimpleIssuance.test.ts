@@ -84,6 +84,7 @@ describe("SimpleIssuance", function () {
       admin: this.admin.address,
       settler: this.settler.address,
       signal: this.simpleSignal.address,
+      signalName: "testsignal1",
       denomAsset: this.contracts.WETH.address,
       denomSymbol: "WETH",
       tokenSymbol: "EX-ETH",
@@ -120,7 +121,6 @@ describe("SimpleIssuance", function () {
     });
 
     await this.main.swapSignal(this.simpleSignal.address, "testsignal1");
-    await this.main.connect(this.admin).initializeFundConfig();
     this.amount = "100000000000000000000";
     await seedBalance({
       ticker: "WETH",

@@ -1,3 +1,4 @@
+
 // Copyright (C) 2021 Exponent
 
 // This file is part of Exponent.
@@ -56,13 +57,6 @@ contract XPNMain is XPNCore, AccessControlEnumerable {
         onlyRole(DEFAULT_ADMIN_ROLE)
     {
         _swapSignal(_signalPoolAddress, _signalName);
-    }
-
-    // @notice initialize fund after deployment
-    // @dev deposit into the contract only permitted after function is called
-    // @dev only callable by admin role
-    function initializeFundConfig() external onlyRole(DEFAULT_ADMIN_ROLE) {
-        _initializeFundConfig();
     }
 
     // @notice set the contract on restricted mode, under restricted mode- only whitelist contract can make deposit
@@ -210,7 +204,7 @@ contract XPNMain is XPNCore, AccessControlEnumerable {
     function deposit(uint256 _amount) external nonReentrant returns (uint256) {
         if (restricted) {
             require(
-                _isWalletWhitelisted(msg.sender),
+                walletWhitelist[msg.sender],
                 "Wallet is not whitelisted"
             );
             return _deposit(_amount);
@@ -298,6 +292,7 @@ contract XPNMain is XPNCore, AccessControlEnumerable {
         _setExpectedEfficiency(_expectedEfficiency);
     }
 
+
     /////////////////////////
     // settlement functions
     /////////////////////////
@@ -366,8 +361,8 @@ contract XPNMain is XPNCore, AccessControlEnumerable {
         return (
             globalState.denomAssetAddress,
             address(lptoken),
-            address(signalPool),
-            signalName,
+            globalState.signal,
+            globalState.signalName,
             _getAdminAddress()
         );
     }
@@ -396,27 +391,15 @@ contract XPNMain is XPNCore, AccessControlEnumerable {
         );
     }
 
-    /////////////////////////
-    // status getter functions
-    /////////////////////////
-
-    function isRestricted() external view returns (bool) {
-        return restricted;
-    }
-
-    function isWalletWhitelisted(address _wallet) external view returns (bool) {
-        return _isWalletWhitelisted(_wallet);
-    }
-
     function isVenueWhitelisted(address _venue) external view returns (bool) {
-        return _isVenueWhitelisted(_venue);
+        return venueWhitelist[_venue];
     }
 
     function isAssetWhitelisted(address _asset) external view returns (bool) {
-        return _isAssetWhitelisted(_asset);
+        return assetWhitelist[_asset];
     }
 
-    function isConfigInitialized() external view returns (bool) {
-        return configInitialized;
+    function isWalletWhitelisted(address wallet) external view returns (bool) {
+        return walletWhitelist[wallet];
     }
 }

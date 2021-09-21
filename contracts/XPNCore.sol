@@ -23,6 +23,7 @@ import "./XPNUtils.sol";
 import "./XPNVault.sol";
 import "./XPNPortfolio.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import "@openzeppelin/contracts/security/Pausable.sol";
 import "./interface/enzyme/IFundDeployer.sol";
 import "./interface/enzyme/IComptroller.sol";
 import "./interface/enzyme/IIntegrationManager.sol";
@@ -31,7 +32,7 @@ import "./interface/enzyme/IPolicyManager.sol";
 // @title core contract for XPN
 // @notice responsible for the global state of the entire contract and external interactions
 // @dev overrides all functional _hooks and lazy-hydrate state to downstream functional contracts,
-contract XPNCore is XPNVault, XPNSettlement, XPNPortfolio {
+contract XPNCore is Pausable, XPNVault, XPNSettlement, XPNPortfolio {
     using SafeERC20 for IERC20;
     int256 constant chainlinkONE = 1e8;
 
@@ -39,6 +40,7 @@ contract XPNCore is XPNVault, XPNSettlement, XPNPortfolio {
         address defaultAdmin; // xpn admin account, only used on deployment
         address defaultSettler; // EOA responsible for calling settlement, only used on deployment
         address signal; // contract address for signal to pull from
+        string signalName; // signal name
         address denomAssetAddress; // address of the denominated asset
         string denomAssetSymbol; // symbol of the denominated asset
         address EZdeployer; // Enzyme FundDeployer contract
@@ -56,8 +58,6 @@ contract XPNCore is XPNVault, XPNSettlement, XPNPortfolio {
     // @notice the target portfolio value to maintain after
     // the rebalance, default to 98%
     State internal globalState;
-    ISignal internal signalPool;
-    string internal signalName;
     int256 expectedEfficiency;
     // @notice the contract state after successful migration
     State private postMigrationState;
@@ -81,14 +81,13 @@ contract XPNCore is XPNVault, XPNSettlement, XPNPortfolio {
     // @notice enzyme fees ID for fees payout
     uint256 constant FEE_PAYOUT = 0;
 
-    bool internal configInitialized;
-    bool internal restricted;
+    bool public restricted;
 
-    mapping(address => bool) private walletWhitelist;
-    mapping(address => bool) private venueWhitelist;
-    mapping(address => bool) private assetWhitelist;
-    mapping(string => address) private symbolToAsset;
-    mapping(address => address) private assetToPriceFeed;
+    mapping(address => bool) internal walletWhitelist;
+    mapping(address => bool) internal venueWhitelist;
+    mapping(address => bool) internal assetWhitelist;
+    mapping(string => address) internal symbolToAsset;
+    mapping(address => address) internal assetToPriceFeed;
 
     event SetRestricted(bool toggle);
     event WalletWhitelisted(address wallet);
@@ -97,8 +96,6 @@ contract XPNCore is XPNVault, XPNSettlement, XPNPortfolio {
     event VenueDeWhitelisted(address venue);
     event AssetWhitelisted(address asset);
     event AssetDeWhitelisted(address asset);
-    event TrackedAssetAdded(address asset);
-    event TrackedAssetRemoved(address asset);
     event AssetConfigAdded(string symbol, address asset, address feed);
     event AssetConfigRemoved(string symbol);
     event NewSignal(address signal);
@@ -116,7 +113,8 @@ contract XPNCore is XPNVault, XPNSettlement, XPNPortfolio {
     ) XPNPortfolio() XPNVault(_tokenName, _symbol) XPNSettlement() {
         globalState = _constructorConfig;
         _whitelistAsset(globalState.denomAssetAddress); //denominated asset is automatically whitelisted
-        (address comptrollerAddress, address sharesAddress) = IFundDeployer(
+
+        (globalState.EZcomptroller, globalState.EZshares) = IFundDeployer(
             globalState.EZdeployer
         ).createNewFund(
                 address(this), // fund deployer
@@ -126,34 +124,22 @@ contract XPNCore is XPNVault, XPNSettlement, XPNPortfolio {
                 globalState.EZfeeConfig, // fees configuration
                 "" // no policy manager data
             );
-        globalState.EZcomptroller = comptrollerAddress;
-        globalState.EZshares = sharesAddress;
-        expectedEfficiency = 98e16; // expected efficiency is default to 98%
+
+        address[] memory buyersToAdd = new address[](1);
+        buyersToAdd[0] = address(this);
+        address[] memory buyersToRemove = new address[](0);
+        IPolicyManager(globalState.EZpolicy).enablePolicyForFund(
+            globalState.EZcomptroller,
+            globalState.EZwhitelistPolicy,
+            abi.encode(buyersToAdd, buyersToRemove)
+        );
+
+        expectedEfficiency = 98e16;
     }
 
     /////////////////////////
     // configuration functions
     /////////////////////////
-
-    // @notice make self a sole depositor to the Enzyme Vault
-    // @dev must be called after the deployment, can't be called as part of constructor
-    // as self address is required as a function argument to IntegrationManager
-    function _initializeFundConfig() internal {
-        require(!configInitialized, "XPNCore: config already initialized");
-        // only if signal supports whitelisted assets
-        _verifySignal(globalState.signal, _getSignalName());
-        // only this contract can deposit
-        address[] memory buyersToAdd = new address[](1);
-        address[] memory buyersToRemove = new address[](0);
-        buyersToAdd[0] = address(this);
-        bytes memory policySettings = abi.encode(buyersToAdd, buyersToRemove);
-        IPolicyManager(globalState.EZpolicy).enablePolicyForFund(
-            globalState.EZcomptroller,
-            globalState.EZwhitelistPolicy,
-            policySettings
-        );
-        configInitialized = true;
-    }
 
     // @notice sets the contract on restricted mode
     function _setRestricted(bool _toggle) internal {
@@ -261,7 +247,7 @@ contract XPNCore is XPNVault, XPNSettlement, XPNPortfolio {
                 "XPNCore: token symbol is not registered"
             );
             require(
-                _isAssetWhitelisted(symbolToAsset[symbol]),
+                assetWhitelist[symbolToAsset[symbol]],
                 "XPNCore: token is not whitelisted"
             );
         }
@@ -269,31 +255,26 @@ contract XPNCore is XPNVault, XPNSettlement, XPNPortfolio {
 
     // @dev enzyme-specific functionality to track zero balance asset
     function _addTrackedAsset(address _asset) internal {
-        require(configInitialized, "XPNCore: config not yet initialized");
-        uint256 actionID = 1;
         address[] memory assets = new address[](1);
         assets[0] = _asset;
         bytes memory addTrackedArgs = abi.encode(assets);
         IComptroller(globalState.EZcomptroller).callOnExtension(
             globalState.EZintegrationManager,
-            actionID,
-            addTrackedArgs
+            1, // actionID to add tracked asset = 1
+            abi.encode(assets)
         );
-        emit TrackedAssetAdded(_asset);
     }
 
     // @dev enzyme-specific functionality to remove tracked asset
     function _removeTrackedAsset(address _asset) internal {
-        uint256 actionID = 2;
         address[] memory assets = new address[](1);
         assets[0] = _asset;
         bytes memory removeTrackedArgs = abi.encode(assets);
         IComptroller(globalState.EZcomptroller).callOnExtension(
             globalState.EZintegrationManager,
-            actionID,
-            removeTrackedArgs
+            2, // actionID to remove tracked asset = 2
+            abi.encode(assets)
         );
-        emit TrackedAssetRemoved(_asset);
     }
 
     /////////////////////////
@@ -343,8 +324,12 @@ contract XPNCore is XPNVault, XPNSettlement, XPNPortfolio {
     }
 
     // @dev implements actual enzyme share purchase on the comptroller
-    function _depositHook(uint256 _amount) internal override returns (uint256) {
-        require(configInitialized, "XPNCore: config not yet initialized");
+    function _depositHook(uint256 _amount)
+        internal
+        override
+        whenNotPaused
+        returns (uint256)
+    {
         IERC20(globalState.denomAssetAddress).safeApprove(
             address(globalState.EZcomptroller),
             _amount
@@ -467,27 +452,27 @@ contract XPNCore is XPNVault, XPNSettlement, XPNPortfolio {
     // @notice deploys new comptroller on enzyme fund deployer
     function _createMigration(State memory _newState) internal {
         postMigrationState = _newState;
+
         address newComptrollerProxy = IFundDeployer(
             postMigrationState.EZdeployer
         ).createMigratedFundConfig(
                 globalState.denomAssetAddress, // denominated asset
                 SHARES_TIMELOCK, // sets shares action timelock to 1
                 _newState.EZfeeConfig, // utilize new fee config
-                "" // no policy manager config
+                ""
             );
-        postMigrationState.EZcomptroller = newComptrollerProxy;
-        postMigrationState.EZshares = globalState.EZshares; //ensure that the shares address never changes
+
+        (postMigrationState.EZcomptroller, postMigrationState.EZshares) = (newComptrollerProxy, globalState.EZshares);
         emit MigrationCreated(_newState);
     }
 
     // @notice initiate the migration process, will start the timelock
     function _signalMigration() internal {
+        _pause();
         IFundDeployer(postMigrationState.EZdeployer).signalMigration(
             globalState.EZshares,
             postMigrationState.EZcomptroller
         );
-        // set configInitialized to false to prevent further deposit
-        configInitialized = false;
         emit MigrationSignaled();
     }
 
@@ -497,7 +482,16 @@ contract XPNCore is XPNVault, XPNSettlement, XPNPortfolio {
             globalState.EZshares
         );
         globalState = postMigrationState;
-        _initializeFundConfig();
+        address[] memory buyersToAdd = new address[](1);
+        address[] memory buyersToRemove = new address[](0);
+        buyersToAdd[0] = address(this);
+
+        IPolicyManager(postMigrationState.EZpolicy).enablePolicyForFund(
+            postMigrationState.EZcomptroller,
+            postMigrationState.EZwhitelistPolicy,
+            abi.encode(buyersToAdd, buyersToRemove)
+        );
+        _unpause();
         emit MigrationExecuted();
     }
 
@@ -505,54 +499,22 @@ contract XPNCore is XPNVault, XPNSettlement, XPNPortfolio {
     // state getter functions
     /////////////////////////
 
-    function _getAssetConfig(string memory _symbol)
-        internal
-        view
-        returns (address, address)
-    {
-        return (
-            symbolToAsset[_symbol],
-            assetToPriceFeed[symbolToAsset[_symbol]]
-        );
-    }
-
     function _getSharesAddress() internal view override returns (address) {
         return globalState.EZshares;
-    }
-
-    function _isVenueWhitelisted(address _venue) internal view returns (bool) {
-        return venueWhitelist[_venue];
-    }
-
-    function _isAssetWhitelisted(address _asset) internal view returns (bool) {
-        return assetWhitelist[_asset];
     }
 
     // @notice set target signal
     // @param signalPoolAddress address of signal contract
     // @param signalName name of the target signal in the signal contract
     // @dev this function assume that caller already verify the compatability off chain.
-    function _setSignal(address signalPoolAddress, string memory _signalName)
+    function _setSignal(address _signalPoolAddress, string memory _signalName)
         internal
     {
-        signalPool = ISignal(signalPoolAddress);
-        signalName = _signalName;
-    }
-
-    // @notice Get signal name
-    // @return string name of active signal
-    function _getSignalName() internal view returns (string memory) {
-        return signalName;
-    }
-
-    // @notice Get signal pool address
-    // @return address signal contract address
-    function _getSignalPool() internal view returns (address) {
-        return address(signalPool);
+        (globalState.signal, globalState.signalName) = (_signalPoolAddress, _signalName);
     }
 
     function _getSignal() internal view override returns (int256[] memory) {
-        return signalPool.getSignal(signalName);
+        return ISignal(globalState.signal).getSignal(globalState.signalName);
     }
 
     function _getSignalSymbols()
@@ -561,7 +523,7 @@ contract XPNCore is XPNVault, XPNSettlement, XPNPortfolio {
         override
         returns (string[] memory)
     {
-        return signalPool.getSignalSymbols(signalName);
+        return ISignal(globalState.signal).getSignalSymbols(globalState.signalName);
     }
 
     function _getExpectedEfficiency() internal view override returns (int256) {
@@ -575,7 +537,4 @@ contract XPNCore is XPNVault, XPNSettlement, XPNPortfolio {
         emit NewExpectedEfficiency(_expectedEfficiency);
     }
 
-    function _isWalletWhitelisted(address wallet) internal view returns (bool) {
-        return walletWhitelist[wallet];
-    }
 }

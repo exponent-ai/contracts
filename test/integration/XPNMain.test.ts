@@ -56,7 +56,6 @@ describe("XPNMain", function () {
     const Signal = await ethers.getContractFactory("XPNSignal");
     this.simpleSignal = await Signal.deploy();
     await this.simpleSignal.deployed();
-    await this.simpleSignal.deployed();
     this.signal = new SignalService({
       signalRegistra: {
         name: "testsignal1",
@@ -81,11 +80,13 @@ describe("XPNMain", function () {
       whitelistPolicy: this.contracts.ENZYME_INVESTOR_WHITELIST.address,
     };
 
+
     const constructorArgs = deployerArgs({
       enzyme: enzymeContracts,
       admin: this.admin.address,
       settler: this.settler.address,
       signal: this.simpleSignal.address,
+      signalName: "testsignal1",
       denomAsset: this.contracts.WETH.address,
       denomSymbol: "WETH",
       tokenSymbol: "EX-ETH",
@@ -122,7 +123,6 @@ describe("XPNMain", function () {
     });
 
     await this.main.swapSignal(this.simpleSignal.address, "testsignal1");
-    await this.main.connect(this.admin).initializeFundConfig();
     await seedBalance({
       ticker: "WETH",
       contract: this.contracts.WETH,

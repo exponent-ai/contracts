@@ -37,15 +37,14 @@ contract IntXPNCoreSpy is XPNCore {
         view
         returns (address, address)
     {
-        return _getAssetConfig(_symbol);
+        return (
+            symbolToAsset[_symbol],
+            assetToPriceFeed[symbolToAsset[_symbol]]
+        );
     }
 
     function verifySignal(address _signal, string memory _name) external {
         _verifySignal(_signal, _name);
-    }
-
-    function initializeFundConfig() external {
-        _initializeFundConfig();
     }
 
     function removeTrackedAsset(address _asset) external {
@@ -122,6 +121,7 @@ contract IntXPNCoreSpy is XPNCore {
         return globalState.EZpolicy;
     }
 
+
     function getTrackedAssetAddress() external view returns (address) {
         return globalState.EZtrackedAssetAdapter;
     }
@@ -138,19 +138,13 @@ contract IntXPNCoreSpy is XPNCore {
         return globalState.EZcomptroller;
     }
 
-    function venueWhitelist(address _venue) external view returns (bool) {
-        return _isVenueWhitelisted(_venue);
+    function isVenueWhitelist(address _venue) external view returns (bool) {
+        return venueWhitelist[_venue];
     }
 
-    function assetWhitelist(address _asset) external view returns (bool) {
-        return _isAssetWhitelisted(_asset);
+    function isAssetWhitelist(address _asset) external view returns (bool) {
+        return assetWhitelist[_asset];
     }
-
-    function isConfigInitialized() external view returns (bool) {
-        return configInitialized;
-    }
-
-    /* // helper functions */
 
     function passesRule(address _comptrollerProxy, address _investor)
         external

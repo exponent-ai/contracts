@@ -32,6 +32,8 @@ import {
   setSnapshot,
   getDeployedContractBytes,
 } from "../utils/integration-test-setup";
+import { SignalService } from "src/signal";
+import { feeConfig, deployerArgs } from "src/deployer";
 
 dotenv.config();
 
@@ -52,26 +54,41 @@ describe("XPNCore", function () {
     const Signal = await ethers.getContractFactory("XPNSignal");
     this.simpleSignal = await Signal.deploy();
     await this.simpleSignal.deployed();
-    await this.simpleSignal.registerSignal("testsignal1", "Simple", ["ETH"]);
+    this.signal = new SignalService({
+      signalRegistra: {
+        name: "testsignal1",
+        metadata: "Simple",
+        symbols: ["ETH"],
+      },
+      contract: this.simpleSignal.connect(this.deployer),
+    });
+    await this.signal.register();
+    await this.signal.submit([1]);
+    const feeManagerConfigData = feeConfig({
+      managementFeePercent: "0.015",
+      managementFeeAddress: this.contracts.ENZYME_MANAGEMENT_FEE.address,
+    });
 
-    await this.simpleSignal.submitSignal("testsignal1", ["ETH"], [1], "0x");
+    const enzymeContracts = {
+      deployer: this.contracts.ENZYME_DEPLOYER.address,
+      integrationManager: this.contracts.ENZYME_INT_MANAGER.address,
+      trackedAssetAdapter: this.contracts.ENZYME_ASSET_ADAPTER.address,
+      policyManager: this.contracts.ENZYME_POLICY_MANAGER.address,
+      whitelistPolicy: this.contracts.ENZYME_INVESTOR_WHITELIST.address,
+    };
 
-    const constructorArgs = [
-      this.admin.address,
-      this.settler.address,
-      this.simpleSignal.address, // signal address
-      this.contracts.WETH.address,
-      "ETH",
-      this.contracts.ENZYME_DEPLOYER.address,
-      this.contracts.ENZYME_INT_MANAGER.address,
-      this.contracts.ENZYME_ASSET_ADAPTER.address,
-      this.contracts.ENZYME_POLICY_MANAGER.address, // policy manager
-      this.contracts.ENZYME_INVESTOR_WHITELIST.address, // investor whitelist
-      ethers.constants.AddressZero,
-      ethers.constants.AddressZero,
-      [],
-      "EX-ETH",
-    ];
+
+    const constructorArgs = deployerArgs({
+      enzyme: enzymeContracts,
+      admin: this.admin.address,
+      settler: this.settler.address,
+      signal: this.simpleSignal.address,
+      signalName: "testsignal1",
+      denomAsset: this.contracts.WETH.address,
+      denomSymbol: "WETH",
+      tokenSymbol: "EX-ETH",
+      feeConfig: feeManagerConfigData,
+    });
 
     this.core = await Core.deploy(constructorArgs, "EX-ETH", "EX-ETH");
     await this.core.deployed();
@@ -87,7 +104,6 @@ describe("XPNCore", function () {
       );
     });
     it("should correctly initialize fund config", async function () {
-      await this.core.initializeFundConfig();
       const comptroller = await this.core.getComptrollerAddress();
       // only core contract could deposit
       expect(await this.core.passesRule(comptroller, this.core.address)).to.be
@@ -96,7 +112,6 @@ describe("XPNCore", function () {
       expect(await this.core.isAuthUserForFund(this.core.address)).to.be.true;
     });
     it("should add tracked asset", async function () {
-      await this.core.initializeFundConfig();
       const sharesAddress = await this.core.getSharesAddress();
       const shares = await ethers.getContractAt("IShares", sharesAddress);
       await this.core.addTrackedAsset(this.contracts.USDC.address);
@@ -152,6 +167,7 @@ describe("XPNCore", function () {
         this.admin.address,
         this.settler.address,
         this.simpleSignal.address,
+        "testsignal1",
         this.contracts.WETH.address,
         "ETH",
         newDeployer.address, // our new fund deployer contract
@@ -222,8 +238,6 @@ describe("XPNCore", function () {
         to: this.depositor.address,
         amount: depositAmount,
       });
-
-      await this.core.initializeFundConfig();
 
       await this.contracts.WETH.connect(this.depositor).approve(
         this.core.address,

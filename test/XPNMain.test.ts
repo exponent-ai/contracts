@@ -89,6 +89,7 @@ describe("XPNMain", function () {
       this.admin.address,
       this.settler.address,
       this.signal.address,
+      "signal1",
       this.weth.address,
       "ETH", // ETH denominated
       this.funddeployer.address,
@@ -106,6 +107,8 @@ describe("XPNMain", function () {
       this.comptroller.address,
       this.shares.address
     );
+      await this.intmanager.mock.addAuthUserForFund.returns();
+      await this.policymanager.mock.enablePolicyForFund.returns();
     this.main = await Main.deploy(constructorArgs, "EX-ETH", "EX-ETH");
     await this.main.deployed();
     await this.main
@@ -134,11 +137,6 @@ describe("XPNMain", function () {
           newAdmin
         );
       });
-      it("only admin can initialize fund config", async function () {
-        await expect(this.main.connect(this.settler).initializeFundConfig()).to
-          .be.reverted;
-        await this.main.connect(this.admin).initializeFundConfig();
-      });
       it("only admin can set signal address", async function () {
         await this.signal.mock.getSignalSymbols
           .withArgs("signal1")
@@ -157,7 +155,6 @@ describe("XPNMain", function () {
           .reverted;
       });
       it("only admin can add tracked asset", async function () {
-        await this.main.connect(this.admin).initializeFundConfig();
         const trackedAsset = randomAddress();
         await expect(
           this.main.connect(this.settler).addTrackedAsset(trackedAsset)
@@ -166,7 +163,6 @@ describe("XPNMain", function () {
         await this.main.connect(this.admin).addTrackedAsset(trackedAsset);
       });
       it("only admin can remove tracked asset", async function () {
-        await this.main.connect(this.admin).initializeFundConfig();
         const trackedAsset = randomAddress();
         await this.comptroller.mock.callOnExtension.returns();
         await this.main.connect(this.admin).addTrackedAsset(trackedAsset);
@@ -319,12 +315,12 @@ describe("XPNMain", function () {
         await expect(this.main.connect(this.settler).setRestricted(true)).to.be
           .reverted;
         await this.main.connect(this.manager).setRestricted(true);
-        expect(await this.main.isRestricted()).to.be.true;
+        expect(await this.main.restricted()).to.be.true;
 
         await expect(this.main.connect(this.settler).setRestricted(false)).to.be
           .reverted;
         await this.main.connect(this.manager).setRestricted(false);
-        expect(await this.main.isRestricted()).to.be.false;
+        expect(await this.main.restricted()).to.be.false;
       });
 
       it("only manager can whitelist wallets", async function () {
@@ -484,16 +480,6 @@ describe("XPNMain", function () {
     });
     it("should get admin address", async function () {
       expect(getAdmin(this.exponentConfig)).to.be.equal(this.admin.address);
-    });
-  });
-
-  describe("status getters", async function () {
-    it("should check if config has been initialized", async function () {
-      await this.intmanager.mock.addAuthUserForFund.returns();
-      await this.policymanager.mock.enablePolicyForFund.returns();
-      expect(await this.main.isConfigInitialized()).to.be.false;
-      await this.main.connect(this.admin).initializeFundConfig();
-      expect(await this.main.isConfigInitialized()).to.be.true;
     });
   });
 });

@@ -20,6 +20,7 @@ export interface IDeployerArgs {
   admin: string;
   settler: string;
   signal: string;
+  signalName: string;
   denomAsset: string;
   denomSymbol: string;
   tokenSymbol: string;
@@ -64,6 +65,7 @@ export function deployerArgs(args: IDeployerArgs) {
     args.admin,
     args.settler,
     args.signal,
+    args.signalName,
     args.denomAsset,
     args.denomSymbol,
     args.enzyme.deployer,

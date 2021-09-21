@@ -135,6 +135,7 @@ describe("XPN life cycle", function () {
         admin: this.admin.address,
         settler: this.settler.address,
         signal: this.simpleSignal.address,
+        signalName: "testsignal",
         denomAsset: this.contracts.WETH.address,
         denomSymbol: "WETH",
         tokenSymbol: "EX-ETH",
@@ -187,10 +188,6 @@ describe("XPN life cycle", function () {
       await this.main
         .connect(this.admin)
         .swapSignal(this.simpleSignal.address, "testsignal");
-    });
-
-    it("init fund", async function () {
-      await this.main.connect(this.admin).initializeFundConfig();
     });
 
     it("whitelistVenue", async function () {

@@ -94,6 +94,11 @@
             "type": "address"
           },
           {
+            "internalType": "string",
+            "name": "signalName",
+            "type": "string"
+          },
+          {
             "internalType": "address",
             "name": "denomAssetAddress",
             "type": "address"
