@@ -73,7 +73,8 @@ contract XPNCore is Pausable, XPNVault, XPNSettlement, XPNPortfolio {
         bytes4(keccak256("redeem(address,bytes,bytes)"));
 
     // @notice minimum seconds between 2 enzyme shares action
-    uint256 constant SHARES_TIMELOCK = 1;
+    // zero to allow for multiple redemptions in one block
+    uint256 constant SHARES_TIMELOCK = 0;
     // @notice enzyme integration manager ID for integration
     uint256 constant DEFI_INTEGRATION = 0;
     // @notice enzyme fees ID for fees invocation
@@ -457,7 +458,7 @@ contract XPNCore is Pausable, XPNVault, XPNSettlement, XPNPortfolio {
             postMigrationState.EZdeployer
         ).createMigratedFundConfig(
                 globalState.denomAssetAddress, // denominated asset
-                SHARES_TIMELOCK, // sets shares action timelock to 1
+                SHARES_TIMELOCK, // sets shares action timelock
                 _newState.EZfeeConfig, // utilize new fee config
                 ""
             );

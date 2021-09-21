@@ -129,6 +129,24 @@ describe("XPNCore", function () {
       expect(await shares.isTrackedAsset(this.contracts.USDC.address)).to.be
         .false;
     });
+    it("should allow for multiple withdraws in one Ethereum block", async function () {
+      const MultiCaller = await ethers.getContractFactory("SharesCaller");
+      const multicaller = await MultiCaller.deploy(this.core.address, this.contracts.WETH.address);
+      await multicaller.deployed();
+      const depositAmount = "100000";
+      const withdrawIncrement = "50000";
+      await seedBalance({
+        ticker: "WETH",
+        contract: this.contracts.WETH,
+        to: multicaller.address,
+        amount: depositAmount,
+      });
+      await this.core.initializeFundConfig();
+      await multicaller.approve(this.core.address, depositAmount);
+      await multicaller.deposit(depositAmount);
+      await multicaller.multiWithdraws([withdrawIncrement, withdrawIncrement]);
+    });
+
   });
   describe("Vault migration", async function () {
     it("should perform vault migration successfully", async function () {
