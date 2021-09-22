@@ -48,7 +48,7 @@ module.exports = {
     path: "./data/abi",
     clear: true,
     flat: true,
-    only: ["IXPN", "IIntegrationManager"],
+    only: ["XPNMain", "IIntegrationManager", "XPNSimpleSignal"],
     spacing: 2,
   },
   gasReporter: {

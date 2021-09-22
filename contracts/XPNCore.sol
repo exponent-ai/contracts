@@ -83,8 +83,8 @@ contract XPNCore is Pausable, XPNVault, XPNSettlement, XPNPortfolio {
     mapping(address => bool) internal walletWhitelist;
     mapping(address => bool) internal venueWhitelist;
     mapping(address => bool) internal assetWhitelist;
-    mapping(string => address) internal symbolToAsset;
-    mapping(address => address) internal assetToPriceFeed;
+    mapping(string => address) public symbolToAsset;
+    mapping(address => address) public assetToPriceFeed;
 
     event SetRestricted(bool toggle);
     event WalletWhitelisted(address wallet);
@@ -226,6 +226,7 @@ contract XPNCore is Pausable, XPNVault, XPNSettlement, XPNPortfolio {
     // @dev supported signal should have correct asset symbols and signal name
     function _verifySignal(address _signal, string memory _signalName)
         internal
+        view
     {
         string[] memory symbols = ISignal(_signal).getSignalSymbols(
             _signalName

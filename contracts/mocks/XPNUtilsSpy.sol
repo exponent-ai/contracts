@@ -28,11 +28,7 @@ contract XPNUtilsSpy {
         return XPNUtils.compareStrings(first, second);
     }
 
-    function parseChainlinkPrice(address _feed)
-        external
-        view
-        returns (int256)
-    {
+    function parseChainlinkPrice(address _feed) external view returns (int256) {
         return XPNUtils.parseChainlinkPrice(_feed);
     }
 }

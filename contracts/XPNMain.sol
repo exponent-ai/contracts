@@ -17,13 +17,13 @@
 
 pragma solidity 0.8.0;
 import "@openzeppelin/contracts/access/AccessControlEnumerable.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "./XPNCore.sol";
-import "./interface/IXPN.sol";
 
 // @title monolith contract for exponent vault
 // @notice require post deployment configuration
 // @dev expose only external functions
-contract XPNMain is XPNCore, AccessControlEnumerable {
+contract XPNMain is XPNCore, AccessControlEnumerable, ReentrancyGuard {
     // @notice default admin role is part of AccessControlEnumerable library
     // bytes32 public constant DEFAULT_ADMIN_ROLE = keccak256("DEFAULT_ADMIN_ROLE");
 

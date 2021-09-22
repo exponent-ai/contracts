@@ -22,7 +22,7 @@ contract SharesCaller {
     }
 
     function multiWithdraws(uint256[] memory _amounts) external {
-        for(uint256 i = 0; i < _amounts.length; i++) {
+        for (uint256 i = 0; i < _amounts.length; i++) {
             vault.withdraw(_amounts[i]);
         }
     }

@@ -19,13 +19,12 @@ pragma solidity 0.8.0;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "./LPToken.sol";
 
 // @title core application logic for vault
 // @notice to be inherited by the implementation contract for added functionality
 // @dev deposit/ withdraw hooks and calculation must be overridden
-abstract contract XPNVault is ReentrancyGuard {
+abstract contract XPNVault {
     using SafeERC20 for IERC20;
 
     // @notice LP tokens should track Enzyme shares 1-1 through deposit and withdraw
