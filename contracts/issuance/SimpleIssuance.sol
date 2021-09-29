@@ -172,7 +172,7 @@ contract SimpleIssuance is ReentrancyGuard, AccessControl, Pausable {
             roundData[currentRoundId].totalDeposit += realAmount;
             _setCurrentRoundStage(Stages.GoalMet);
             // send the excess amount back to caller
-            denomAsset.transfer(msg.sender, change);
+            denomAsset.safeTransfer(msg.sender, change);
         }
         if (_totalDeposit == goal) {
             roundData[currentRoundId].totalDeposit += realAmount;
