@@ -36,7 +36,7 @@ Lint checks are automatically performed by [Husky](https://typicode.github.io/hu
 # Local Node
 
 to spin up a local hardhat node with exponent contracts run
-  1. `npx hardhat node --fork https://eth-mainnet.alchemyapi.io/v2/<key> --fork-block-number 12141529`
+  1. `npx hardhat node --fork https://eth-mainnet.alchemyapi.io/v2/<key> --fork-block-number 13088415`
   2. `npm run deploy:local`
   
 to send ether to an address:
